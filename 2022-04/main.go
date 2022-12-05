@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strconv"
 	"strings"
+
+	"github.com/doeg/advent-of-code/util"
 )
 
 func main() {
@@ -14,54 +14,27 @@ func main() {
 }
 
 func partOne() {
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	acc := 0
 
-	for _, row := range arr {
-		// Ignore newlines
-		if row == "" {
-			continue
-		}
-
+	for _, row := range input {
 		a, aa, b, bb := parseRow(row)
-
 		if (a <= b && aa >= bb) || (b <= a && bb >= aa) {
 			acc += 1
 			continue
 		}
 	}
-
 	fmt.Println(acc)
 }
 
 func partTwo() {
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	acc := 0
 
-	for _, row := range arr {
-		// Ignore newlines
-		if row == "" {
-			continue
-		}
-
+	for _, row := range input {
 		a, aa, b, bb := parseRow(row)
-
 		if (a <= b && aa >= b) || (b <= a && bb >= a) {
 			acc += 1
 			continue

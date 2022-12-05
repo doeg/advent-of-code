@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"strings"
+
+	"github.com/doeg/advent-of-code/util"
 )
 
 func main() {
@@ -13,23 +12,12 @@ func main() {
 }
 
 func partOne() {
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
 
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	acc := 0
 
-	for _, r := range arr {
-		// Ignore messy newlines
-		if r == "" {
-			continue
-		}
-
+	for _, r := range input {
 		half := len(r) / 2
 
 		first := r[:half]
@@ -49,24 +37,17 @@ func partOne() {
 }
 
 func partTwo() {
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	i := 0
 	n := 3
 
 	acc := 0
 
-	for i < len(arr)-n {
-		a := arr[i]
-		b := arr[i+1]
-		c := arr[i+2]
+	for i < len(input) {
+		a := input[i]
+		b := input[i+1]
+		c := input[i+2]
 
 		aa := makeCounts(a)
 		bb := makeCounts(b)

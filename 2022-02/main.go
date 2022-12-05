@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
+
+	"github.com/doeg/advent-of-code/util"
 )
 
 func main() {
@@ -29,23 +29,11 @@ func partOne() {
 		{0, 6, 3},
 	}
 
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	acc := 0
 
-	for _, round := range arr {
-		// Ignore trailing newlines
-		if round == "" {
-			continue
-		}
-
+	for _, round := range input {
 		s := strings.Split(round, " ")
 		them := values[s[0]]
 		me := values[s[1]]
@@ -78,18 +66,11 @@ func partTwo() {
 		{0, 6, 3},
 	}
 
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	acc := 0
 
-	for _, round := range arr {
+	for _, round := range input {
 		s := strings.Split(round, " ")
 		if len(s) < 2 {
 			continue

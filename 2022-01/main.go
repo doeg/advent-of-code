@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strconv"
-	"strings"
+
+	"github.com/doeg/advent-of-code/util"
 )
 
 func main() {
@@ -14,19 +13,12 @@ func main() {
 }
 
 func partOne() {
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	var buff int
 	var biggest int
 
-	for _, c := range arr {
+	for _, c := range input {
 		if c != "" {
 			i, _ := strconv.Atoi(c)
 			buff = buff + i
@@ -46,20 +38,13 @@ func partOne() {
 const n = 3
 
 func partTwo() {
-	inputFile := os.Args[1]
-	file, err := ioutil.ReadFile(inputFile)
-	if err != nil {
-		panic(err)
-	}
-
-	input := string(file)
-	arr := strings.Split(strings.ReplaceAll(input, "\r\n", "\n"), "\n")
+	input := util.ReadInput()
 
 	var buff int
 
 	biggest := make([]int, n)
 
-	for _, c := range arr {
+	for _, c := range input {
 		if c != "" {
 			i, _ := strconv.Atoi(c)
 			buff = buff + i
