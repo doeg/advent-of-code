@@ -1,7 +1,11 @@
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
+// Represents (x,y) coordinates on a 2D Cartesian plane
 type Coords struct {
 	X int // horizontal
 	Y int // vertical
@@ -27,4 +31,24 @@ func (c *Coords) IsAdjacent(other *Coords) bool {
 	isW := other.X == c.X-1 && other.Y == c.Y
 	isNW := other.X == c.X-1 && other.Y == c.Y+1
 	return isN || isNE || isE || isSE || isS || isSW || isW || isNW
+}
+
+// Represents a position in a 2D array
+type GridPosition struct {
+	Row int
+	Col int
+}
+
+// ToGridPosition returns the row and column coordinates on a square grid
+// of size "size", where "size" is the _total_ size of the grid.
+func (c *Coords) ToGridPosition(size int) (*GridPosition, error) {
+	if size%2 == 0 {
+		return nil, fmt.Errorf("size must be an odd number")
+	}
+
+	sf := int(math.Floor(float64(size) / 2))
+	row := sf - c.Y
+	col := sf + c.X
+
+	return &GridPosition{Row: row, Col: col}, nil
 }
