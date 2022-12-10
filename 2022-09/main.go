@@ -21,14 +21,14 @@ func partOne(input []string) {
 
 	for _, line := range input {
 		dir, mag := parseInstruction(line)
-		fmt.Printf("==== %s%d ====\n", dir, mag)
-		printGrid(h, t)
+		// fmt.Printf("==== %s%d ====\n", dir, mag)
+		// printGrid(h, t)
 
 		hs := make([]string, 0)
-		hs = append(hs, h.ToString())
+		// hs = append(hs, h.ToString())
 
 		ts := make([]string, 0)
-		ts = append(ts, t.ToString())
+		// ts = append(ts, t.ToString())
 
 		for i := 0; i < mag; i++ {
 			// Move H
@@ -66,12 +66,12 @@ func partOne(input []string) {
 			}
 
 			visited[t.ToString()] = true
-			printGrid(h, t)
+			// printGrid(h, t)
 		}
 
-		fmt.Printf("H: %s\n", strings.Join(hs, " -> "))
-		fmt.Printf("T: %s\n", strings.Join(ts, " -> "))
-		fmt.Println()
+		// fmt.Printf("H: %s\n", strings.Join(hs, " -> "))
+		// fmt.Printf("T: %s\n", strings.Join(ts, " -> "))
+		// fmt.Println()
 	}
 
 	fmt.Printf("%+v\n", visited)
