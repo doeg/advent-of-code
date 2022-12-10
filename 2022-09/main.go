@@ -74,7 +74,6 @@ func partOne(input []string) {
 		// fmt.Println()
 	}
 
-	fmt.Printf("%+v\n", visited)
 	fmt.Println(len(visited))
 }
 
