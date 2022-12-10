@@ -10,3 +10,7 @@ type Coords struct {
 func (c *Coords) ToString() string {
 	return fmt.Sprintf("(%d,%d)", c.X, c.Y)
 }
+
+func (c *Coords) IsEqual(other *Coords) bool {
+	return c.X == other.X && c.Y == other.Y
+}
