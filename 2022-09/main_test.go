@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -79,53 +78,6 @@ func TestIsAdjacent(t *testing.T) {
 			result := tt.c1.IsAdjacent(tt.c2)
 			if result != tt.adjacent {
 				t.Errorf("expected %t, but got %t", tt.adjacent, result)
-			}
-		})
-	}
-}
-
-func TestToGridPosition(t *testing.T) {
-	tests := []struct {
-		name        string
-		coords      *Coords
-		size        int
-		expected    *GridPosition
-		shouldError bool
-	}{
-		{
-			coords:   &Coords{0, 0},
-			size:     5,
-			expected: &GridPosition{2, 2},
-		},
-		{
-			coords:   &Coords{0, 2},
-			size:     5,
-			expected: &GridPosition{0, 2},
-		},
-		{
-			coords:   &Coords{2, 0},
-			size:     5,
-			expected: &GridPosition{2, 4},
-		},
-		{
-			coords:   &Coords{2, 2},
-			size:     5,
-			expected: &GridPosition{0, 4},
-		},
-
-		{
-			coords:   &Coords{-2, -2},
-			size:     5,
-			expected: &GridPosition{4, 0},
-		},
-	}
-
-	for _, tt := range tests {
-		name := fmt.Sprintf("%dx%d %s", tt.size, tt.size, tt.coords.ToString())
-		t.Run(name, func(t *testing.T) {
-			result, _ := tt.coords.ToGridPosition(tt.size)
-			if tt.expected != nil && result.Row != tt.expected.Row || result.Col != tt.expected.Col {
-				t.Errorf("Expected [%d][%d], got [%d][%d]", tt.expected.Row, tt.expected.Col, result.Row, result.Col)
 			}
 		})
 	}

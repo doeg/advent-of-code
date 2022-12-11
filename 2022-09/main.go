@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
@@ -23,15 +22,6 @@ func partOne(input []string) {
 
 	for _, line := range input {
 		dir, mag := parseInstruction(line)
-		// fmt.Printf("==== %s%d ====\n", dir, mag)
-		// printGrid(h, t)
-
-		hs := make([]string, 0)
-		// hs = append(hs, h.ToString())
-
-		ts := make([]string, 0)
-		// ts = append(ts, t.ToString())
-
 		for i := 0; i < mag; i++ {
 			// Move H
 			switch dir {
@@ -47,12 +37,8 @@ func partOne(input []string) {
 				panic(fmt.Errorf("invalid direction %s", dir))
 			}
 
-			hs = append(hs, h.ToString())
-
 			// Move T
-			if h.IsAdjacent(t) {
-				ts = append(ts, t.ToString())
-			} else {
+			if !h.IsAdjacent(t) {
 				if h.X > t.X {
 					t.X++
 				}
@@ -68,12 +54,7 @@ func partOne(input []string) {
 			}
 
 			visited[t.ToString()] = true
-			// printGrid(h, t)
 		}
-
-		// fmt.Printf("H: %s\n", strings.Join(hs, " -> "))
-		// fmt.Printf("T: %s\n", strings.Join(ts, " -> "))
-		// fmt.Println()
 	}
 
 	fmt.Println(len(visited))
@@ -81,17 +62,11 @@ func partOne(input []string) {
 
 func partTwo(input []string) {
 	rope := make([]Coords, 10)
-	tailPositions := make([]Coords, 0)
 	tailPositionsByKey := make(map[string]bool)
 
 	for _, line := range input {
 		dir, mag := parseInstruction(line)
 
-		// fmt.Printf("\n==== %s%d ====\n", dir, mag)
-		// printRopeGrid(rope)
-		// fmt.Println()
-
-		// Process each move in the instruction set individually
 		for m := 0; m < mag; m++ {
 			// Copy into a new var so we can mess with it
 			next := rope
@@ -126,21 +101,12 @@ func partTwo(input []string) {
 
 				// If we're on the tail, track its position
 				if k == len(next)-1 {
-					tailPositions = append(tailPositions, next[k])
 					tailPositionsByKey[next[k].ToString()] = true
 				}
 			}
-			// printRopeGrid(next)
-			// fmt.Println()
-
-			// Update the rope state for the next iteration
 			rope = next
 		}
-
-		// printVisited(tailPositions)
-
 	}
-	// fmt.Println(tailPositionsByKey)
 	fmt.Println(len(tailPositionsByKey))
 }
 
@@ -165,109 +131,6 @@ func parseInstruction(line string) (string, int) {
 	s := strings.Split(line, " ")
 	mag, _ := strconv.Atoi(s[1])
 	return s[0], mag
-}
-
-func printVisited(coords []Coords) {
-	size := 55
-	positions := make(map[string]bool)
-	for _, c := range coords {
-		p, err := c.ToGridPosition(size)
-		if err != nil {
-			panic(err)
-		}
-		k := p.ToString()
-		positions[k] = true
-	}
-
-	for row := 0; row < size; row++ {
-		s := make([]string, 0)
-		for col := 0; col < size; col++ {
-			c := GridPosition{Row: row, Col: col}
-			k := c.ToString()
-			if positions[k] {
-				s = append(s, "#")
-			} else {
-				s = append(s, ".")
-			}
-			// switch {
-			// case hp.Row == row && hp.Col == col:
-			// 	s = append(s, "H")
-			// case tp.Row == row && tp.Col == col:
-			// 	s = append(s, "T")
-			// default:
-			// 	s = append(s, ".")
-			// }
-		}
-		fmt.Println(strings.Join(s, ""))
-	}
-	fmt.Println()
-}
-
-func printRopeGrid(coords []Coords) {
-	size := 55
-
-	positions := make(map[string][]string)
-	for i, c := range coords {
-		p, err := c.ToGridPosition(size)
-		if err != nil {
-			panic(err)
-		}
-
-		k := p.ToString()
-		if _, ok := positions[k]; !ok {
-			positions[k] = make([]string, 0)
-		}
-
-		s := fmt.Sprint(i)
-		if i == 0 {
-			s = "H"
-		}
-		positions[k] = append(positions[k], s)
-	}
-
-	for row := 0; row < size; row++ {
-		line := make([]string, 0)
-		for col := 0; col < size; col++ {
-			p := &GridPosition{Row: row, Col: col}
-
-			k, ok := positions[p.ToString()]
-			s := "."
-			if ok {
-				s = k[0]
-			}
-			line = append(line, s)
-		}
-		fmt.Println(strings.Join(line, " "))
-	}
-}
-
-func printGrid(h, t *Coords) {
-	size := 11
-	hp, err := h.ToGridPosition(size)
-	if err != nil {
-		panic(err)
-	}
-
-	tp, err := t.ToGridPosition(size)
-	if err != nil {
-		panic(err)
-	}
-
-	for row := 0; row < size; row++ {
-		s := make([]string, 0)
-		for col := 0; col < size; col++ {
-			switch {
-			case hp.Row == row && hp.Col == col:
-				s = append(s, "H")
-			case tp.Row == row && tp.Col == col:
-				s = append(s, "T")
-			default:
-				s = append(s, ".")
-			}
-		}
-		fmt.Println(strings.Join(s, " "))
-	}
-	fmt.Println()
 }
 
 // Represents (x,y) coordinates on a 2D Cartesian plane
@@ -296,28 +159,4 @@ func (c *Coords) IsAdjacent(other *Coords) bool {
 	isW := other.X == c.X-1 && other.Y == c.Y
 	isNW := other.X == c.X-1 && other.Y == c.Y+1
 	return isN || isNE || isE || isSE || isS || isSW || isW || isNW
-}
-
-// ToGridPosition returns the row and column coordinates on a square grid
-// of size "size", where "size" is the _total_ size of the grid.
-func (c *Coords) ToGridPosition(size int) (*GridPosition, error) {
-	if size%2 == 0 {
-		return nil, fmt.Errorf("size must be an odd number")
-	}
-
-	sf := int(math.Floor(float64(size) / 2))
-	row := sf - c.Y
-	col := sf + c.X
-
-	return &GridPosition{Row: row, Col: col}, nil
-}
-
-// Represents a position in a 2D array
-type GridPosition struct {
-	Row int
-	Col int
-}
-
-func (g *GridPosition) ToString() string {
-	return fmt.Sprintf("[%d][%d]", g.Row, g.Col)
 }
