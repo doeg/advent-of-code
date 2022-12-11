@@ -75,7 +75,7 @@ func TestIsAdjacent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.c1.IsAdjacent(tt.c2)
+			result := tt.c1.isAdjacent(tt.c2)
 			if result != tt.adjacent {
 				t.Errorf("expected %t, but got %t", tt.adjacent, result)
 			}

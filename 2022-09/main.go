@@ -38,7 +38,7 @@ func partOne(input []string) {
 			}
 
 			// Move T
-			if !h.IsAdjacent(t) {
+			if !h.isAdjacent(t) {
 				if h.X > t.X {
 					t.X++
 				}
@@ -53,7 +53,7 @@ func partOne(input []string) {
 				}
 			}
 
-			visited[t.ToString()] = true
+			visited[t.toString()] = true
 		}
 	}
 
@@ -78,7 +78,7 @@ func partTwo(input []string) {
 				}
 
 				comp := next[k-1]
-				if !comp.IsEqual(&rope[k]) && !comp.IsAdjacent(&rope[k]) {
+				if !comp.isEqual(&rope[k]) && !comp.isAdjacent(&rope[k]) {
 					if comp.X > rope[k].X {
 						rope[k].X++
 					}
@@ -95,7 +95,7 @@ func partTwo(input []string) {
 
 				// If we're on the tail, track its position
 				if k == len(next)-1 {
-					tailPositionsByKey[next[k].ToString()] = true
+					tailPositionsByKey[next[k].toString()] = true
 				}
 			}
 
@@ -134,17 +134,17 @@ type Coords struct {
 	Y int // vertical
 }
 
-func (c *Coords) ToString() string {
+func (c *Coords) toString() string {
 	return fmt.Sprintf("(%d,%d)", c.X, c.Y)
 }
 
-func (c *Coords) IsEqual(other *Coords) bool {
+func (c *Coords) isEqual(other *Coords) bool {
 	return c.X == other.X && c.Y == other.Y
 }
 
-// IsAdjacent returns true if "other" is adjacent to "c"
+// isAdjacent returns true if "other" is adjacent to "c"
 // in the horizontal, vertical, or diagonal direction
-func (c *Coords) IsAdjacent(other *Coords) bool {
+func (c *Coords) isAdjacent(other *Coords) bool {
 	isN := other.X == c.X && other.Y == c.Y+1
 	isNE := other.X == c.X+1 && other.Y == c.Y+1
 	isE := other.X == c.X+1 && other.Y == c.Y
