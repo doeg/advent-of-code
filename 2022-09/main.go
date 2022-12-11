@@ -80,14 +80,15 @@ func partOne(input []string) {
 
 func partTwo(input []string) {
 	rope := make([]util.Coords, 10)
-	fmt.Printf("%+v\n", rope)
+	tailPositions := make([]util.Coords, 0)
+	tailPositionsByKey := make(map[string]bool)
 
 	for _, line := range input {
 		dir, mag := parseInstruction(line)
 
-		fmt.Printf("\n==== %s%d ====\n", dir, mag)
-		printRopeGrid(rope)
-		fmt.Println()
+		// fmt.Printf("\n==== %s%d ====\n", dir, mag)
+		// printRopeGrid(rope)
+		// fmt.Println()
 
 		// Process each move in the instruction set individually
 		for m := 0; m < mag; m++ {
@@ -107,35 +108,39 @@ func partTwo(input []string) {
 				// If the current overlaps the last, even after it's already moved,
 				// then they're stacked. The assumption is this only happens in the starting
 				// position. Either way, nothing to be done.
-				if comp.IsEqual(&rope[k]) {
-					continue
+				if !comp.IsEqual(&rope[k]) && !comp.IsAdjacent(&rope[k]) {
+					if comp.X > rope[k].X {
+						rope[k].X++
+					}
+					if comp.X < rope[k].X {
+						rope[k].X--
+					}
+					if comp.Y > rope[k].Y {
+						rope[k].Y++
+					}
+					if comp.Y < rope[k].Y {
+						rope[k].Y--
+					}
 				}
 
-				if comp.IsAdjacent(&rope[k]) {
-					continue
+				// If we're on the tail, track its position
+				if k == len(next)-1 {
+					tailPositions = append(tailPositions, next[k])
+					tailPositionsByKey[next[k].ToString()] = true
 				}
-
-				if comp.X > rope[k].X {
-					rope[k].X++
-				}
-				if comp.X < rope[k].X {
-					rope[k].X--
-				}
-				if comp.Y > rope[k].Y {
-					rope[k].Y++
-				}
-				if comp.Y < rope[k].Y {
-					rope[k].Y--
-				}
-
 			}
-			printRopeGrid(next)
-			fmt.Println()
+			// printRopeGrid(next)
+			// fmt.Println()
 
 			// Update the rope state for the next iteration
 			rope = next
 		}
+
+		// printVisited(tailPositions)
+
 	}
+	fmt.Println(tailPositionsByKey)
+	fmt.Println(len(tailPositionsByKey))
 }
 
 func MoveHead(c util.Coords, dir string) util.Coords {
@@ -161,8 +166,44 @@ func parseInstruction(line string) (string, int) {
 	return s[0], mag
 }
 
+func printVisited(coords []util.Coords) {
+	size := 55
+	positions := make(map[string]bool)
+	for _, c := range coords {
+		p, err := c.ToGridPosition(size)
+		if err != nil {
+			panic(err)
+		}
+		k := p.ToString()
+		positions[k] = true
+	}
+
+	for row := 0; row < size; row++ {
+		s := make([]string, 0)
+		for col := 0; col < size; col++ {
+			c := util.GridPosition{Row: row, Col: col}
+			k := c.ToString()
+			if positions[k] {
+				s = append(s, "#")
+			} else {
+				s = append(s, ".")
+			}
+			// switch {
+			// case hp.Row == row && hp.Col == col:
+			// 	s = append(s, "H")
+			// case tp.Row == row && tp.Col == col:
+			// 	s = append(s, "T")
+			// default:
+			// 	s = append(s, ".")
+			// }
+		}
+		fmt.Println(strings.Join(s, ""))
+	}
+	fmt.Println()
+}
+
 func printRopeGrid(coords []util.Coords) {
-	size := 11
+	size := 55
 
 	positions := make(map[string][]string)
 	for i, c := range coords {
