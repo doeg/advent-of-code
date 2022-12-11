@@ -10,7 +10,7 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	// partOne(input)
+	partOne(input)
 	partTwo(input)
 }
 
@@ -139,7 +139,7 @@ func partTwo(input []string) {
 		// printVisited(tailPositions)
 
 	}
-	fmt.Println(tailPositionsByKey)
+	// fmt.Println(tailPositionsByKey)
 	fmt.Println(len(tailPositionsByKey))
 }
 
