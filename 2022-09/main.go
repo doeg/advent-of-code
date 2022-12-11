@@ -86,35 +86,46 @@ func partTwo(input []string) {
 		dir, mag := parseInstruction(line)
 
 		fmt.Printf("\n==== %s%d ====\n", dir, mag)
+		printRopeGrid(rope)
+		fmt.Println()
 
 		// Process each move in the instruction set individually
 		for m := 0; m < mag; m++ {
+			// Copy into a new var so we can mess with it
 			next := rope
 
 			for k := 0; k < len(rope); k++ {
 				switch k {
 				case 0:
-					switch dir {
-					case "U":
-						rope[k].Y++
-					case "R":
-						rope[k].X++
-					case "D":
-						rope[k].Y--
-					case "L":
-						rope[k].X--
-					default:
-						panic(fmt.Errorf("invalid direction %s", dir))
-					}
+					rope[k] = MoveHead(rope[k], dir)
 				default:
 				}
 
 			}
-			fmt.Printf("%+v\n", next)
 			printRopeGrid(next)
+			fmt.Println()
+
+			// Update the rope state for the next iteration
 			rope = next
 		}
 	}
+}
+
+func MoveHead(c util.Coords, dir string) util.Coords {
+	next := c
+	switch dir {
+	case "U":
+		next.Y++
+	case "R":
+		next.X++
+	case "D":
+		next.Y--
+	case "L":
+		next.X--
+	default:
+		panic(fmt.Errorf("invalid direction %s", dir))
+	}
+	return next
 }
 
 func parseInstruction(line string) (string, int) {
