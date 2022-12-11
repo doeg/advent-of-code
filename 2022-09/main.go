@@ -17,42 +17,14 @@ func main() {
 func partOne(input []string) {
 	visited := make(map[string]bool)
 
-	h := &Coords{X: 0, Y: 0}
-	t := &Coords{X: 0, Y: 0}
+	h := Coords{X: 0, Y: 0}
+	t := Coords{X: 0, Y: 0}
 
 	for _, line := range input {
 		dir, mag := parseInstruction(line)
 		for i := 0; i < mag; i++ {
-			// Move H
-			switch dir {
-			case "U":
-				h.Y++
-			case "R":
-				h.X++
-			case "D":
-				h.Y--
-			case "L":
-				h.X--
-			default:
-				panic(fmt.Errorf("invalid direction %s", dir))
-			}
-
-			// Move T
-			if !h.isAdjacent(t) {
-				if h.X > t.X {
-					t.X++
-				}
-				if h.X < t.X {
-					t.X--
-				}
-				if h.Y > t.Y {
-					t.Y++
-				}
-				if h.Y < t.Y {
-					t.Y--
-				}
-			}
-
+			h = moveHead(h, dir)
+			t = *moveTail(&t, &h)
 			visited[t.toString()] = true
 		}
 	}
@@ -71,31 +43,14 @@ func partTwo(input []string) {
 			next := rope
 
 			for k := 0; k < len(rope); k++ {
-				// The head of the rope is ~* special *~
-				if k == 0 {
+				switch k {
+				case 0:
 					next[k] = moveHead(rope[k], dir)
-					continue
-				}
-
-				comp := next[k-1]
-				if !comp.isEqual(&rope[k]) && !comp.isAdjacent(&rope[k]) {
-					if comp.X > rope[k].X {
-						rope[k].X++
+				default:
+					next[k] = *moveTail(&next[k], &next[k-1])
+					if k == len(next)-1 {
+						tailPositionsByKey[next[k].toString()] = true
 					}
-					if comp.X < rope[k].X {
-						rope[k].X--
-					}
-					if comp.Y > rope[k].Y {
-						rope[k].Y++
-					}
-					if comp.Y < rope[k].Y {
-						rope[k].Y--
-					}
-				}
-
-				// If we're on the tail, track its position
-				if k == len(next)-1 {
-					tailPositionsByKey[next[k].toString()] = true
 				}
 			}
 
@@ -118,6 +73,25 @@ func moveHead(c Coords, dir string) Coords {
 		next.X--
 	default:
 		panic(fmt.Errorf("invalid direction %s", dir))
+	}
+	return next
+}
+
+func moveTail(curr, prev *Coords) *Coords {
+	next := curr
+	if !prev.isEqual(next) && !prev.isAdjacent(next) {
+		if prev.X > next.X {
+			next.X++
+		}
+		if prev.X < next.X {
+			next.X--
+		}
+		if prev.Y > next.Y {
+			next.Y++
+		}
+		if prev.Y < next.Y {
+			next.Y--
+		}
 	}
 	return next
 }
