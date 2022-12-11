@@ -95,10 +95,37 @@ func partTwo(input []string) {
 			next := rope
 
 			for k := 0; k < len(rope); k++ {
-				switch k {
-				case 0:
-					rope[k] = MoveHead(rope[k], dir)
-				default:
+				// The head of the rope is ~* special *~
+				if k == 0 {
+					next[k] = MoveHead(rope[k], dir)
+					continue
+				}
+
+				// Compare the current to the "last" (headmost) in the rope
+				comp := next[k-1]
+
+				// If the current overlaps the last, even after it's already moved,
+				// then they're stacked. The assumption is this only happens in the starting
+				// position. Either way, nothing to be done.
+				if comp.IsEqual(&rope[k]) {
+					continue
+				}
+
+				if comp.IsAdjacent(&rope[k]) {
+					continue
+				}
+
+				if comp.X > rope[k].X {
+					rope[k].X++
+				}
+				if comp.X < rope[k].X {
+					rope[k].X--
+				}
+				if comp.Y > rope[k].Y {
+					rope[k].Y++
+				}
+				if comp.Y < rope[k].Y {
+					rope[k].Y--
 				}
 
 			}
@@ -137,13 +164,23 @@ func parseInstruction(line string) (string, int) {
 func printRopeGrid(coords []util.Coords) {
 	size := 11
 
-	positions := make(map[string]string)
+	positions := make(map[string][]string)
 	for i, c := range coords {
 		p, err := c.ToGridPosition(size)
 		if err != nil {
 			panic(err)
 		}
-		positions[p.ToString()] = fmt.Sprint(i)
+
+		k := p.ToString()
+		if _, ok := positions[k]; !ok {
+			positions[k] = make([]string, 0)
+		}
+
+		s := fmt.Sprint(i)
+		if i == 0 {
+			s = "H"
+		}
+		positions[k] = append(positions[k], s)
 	}
 
 	for row := 0; row < size; row++ {
@@ -154,7 +191,7 @@ func printRopeGrid(coords []util.Coords) {
 			k, ok := positions[p.ToString()]
 			s := "."
 			if ok {
-				s = k
+				s = k[0]
 			}
 			line = append(line, s)
 		}
