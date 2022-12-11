@@ -10,7 +10,8 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	partOne(input)
+	// partOne(input)
+	partTwo(input)
 }
 
 func partOne(input []string) {
@@ -77,10 +78,77 @@ func partOne(input []string) {
 	fmt.Println(len(visited))
 }
 
+func partTwo(input []string) {
+	rope := make([]util.Coords, 10)
+	fmt.Printf("%+v\n", rope)
+
+	for _, line := range input {
+		dir, mag := parseInstruction(line)
+
+		fmt.Printf("\n==== %s%d ====\n", dir, mag)
+
+		// Process each move in the instruction set individually
+		for m := 0; m < mag; m++ {
+			next := rope
+
+			for k := 0; k < len(rope); k++ {
+				switch k {
+				case 0:
+					switch dir {
+					case "U":
+						rope[k].Y++
+					case "R":
+						rope[k].X++
+					case "D":
+						rope[k].Y--
+					case "L":
+						rope[k].X--
+					default:
+						panic(fmt.Errorf("invalid direction %s", dir))
+					}
+				default:
+				}
+
+			}
+			fmt.Printf("%+v\n", next)
+			printRopeGrid(next)
+			rope = next
+		}
+	}
+}
+
 func parseInstruction(line string) (string, int) {
 	s := strings.Split(line, " ")
 	mag, _ := strconv.Atoi(s[1])
 	return s[0], mag
+}
+
+func printRopeGrid(coords []util.Coords) {
+	size := 11
+
+	positions := make(map[string]string)
+	for i, c := range coords {
+		p, err := c.ToGridPosition(size)
+		if err != nil {
+			panic(err)
+		}
+		positions[p.ToString()] = fmt.Sprint(i)
+	}
+
+	for row := 0; row < size; row++ {
+		line := make([]string, 0)
+		for col := 0; col < size; col++ {
+			p := &util.GridPosition{Row: row, Col: col}
+
+			k, ok := positions[p.ToString()]
+			s := "."
+			if ok {
+				s = k
+			}
+			line = append(line, s)
+		}
+		fmt.Println(strings.Join(line, " "))
+	}
 }
 
 func printGrid(h, t *util.Coords) {

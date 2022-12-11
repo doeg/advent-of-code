@@ -33,12 +33,6 @@ func (c *Coords) IsAdjacent(other *Coords) bool {
 	return isN || isNE || isE || isSE || isS || isSW || isW || isNW
 }
 
-// Represents a position in a 2D array
-type GridPosition struct {
-	Row int
-	Col int
-}
-
 // ToGridPosition returns the row and column coordinates on a square grid
 // of size "size", where "size" is the _total_ size of the grid.
 func (c *Coords) ToGridPosition(size int) (*GridPosition, error) {
@@ -51,4 +45,14 @@ func (c *Coords) ToGridPosition(size int) (*GridPosition, error) {
 	col := sf + c.X
 
 	return &GridPosition{Row: row, Col: col}, nil
+}
+
+// Represents a position in a 2D array
+type GridPosition struct {
+	Row int
+	Col int
+}
+
+func (g *GridPosition) ToString() string {
+	return fmt.Sprintf("[%d][%d]", g.Row, g.Col)
 }
