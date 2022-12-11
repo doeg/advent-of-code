@@ -36,6 +36,9 @@ func partOne(input []string) {
 var mre = regexp.MustCompile(`^Monkey (\d+):$`)
 var sre = regexp.MustCompile(`^Starting items: (?:(\d+)(?:,\s)?)+$`)
 var ore = regexp.MustCompile(`^Operation: new = old ([+*]) (\w+)`)
+var dre = regexp.MustCompile(`^Test: divisible by (\d+)`)
+var tre = regexp.MustCompile(`^If true: throw to monkey (\d+)`)
+var fre = regexp.MustCompile(`^If false: throw to monkey (\d+)`)
 
 func parseMonkeys(input []string) []*Monkey {
 	monkeyCounter := 0
@@ -53,6 +56,12 @@ func parseMonkeys(input []string) []*Monkey {
 			monkeys[monkeyCounter].items = parseStartingItems(trimmed)
 		case ore.MatchString(trimmed):
 			monkeys[monkeyCounter].operation = parseOperation(trimmed)
+		case dre.MatchString(trimmed):
+			monkeys[monkeyCounter].testDivisor = parseTestDivisor(trimmed)
+		case tre.MatchString(trimmed):
+			monkeys[monkeyCounter].testTrue = parseTargetMonkey(trimmed)
+		case fre.MatchString(trimmed):
+			monkeys[monkeyCounter].testFalse = parseTargetMonkey(trimmed)
 		}
 	}
 
@@ -96,4 +105,23 @@ func parseOperation(line string) MonkeyFn {
 	default:
 		panic("Unrecognized operand")
 	}
+}
+
+func parseTestDivisor(line string) int {
+	m := dre.FindAllStringSubmatch(line, -1)[0][1]
+	i, err := strconv.Atoi(m)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func parseTargetMonkey(line string) int {
+	split := strings.Split(line, " ")
+	p := split[len(split)-1]
+	i, err := strconv.Atoi(p)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }
