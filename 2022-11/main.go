@@ -22,14 +22,78 @@ type Monkey struct {
 	testDivisor int
 	testTrue    int
 	testFalse   int
+	count       int
 }
 
 func partOne(input []string) {
 	monkeys := parseMonkeys(input)
+	// for _, m := range monkeys {
+	// 	fmt.Printf("%+v\n\n", m)
+	// }
+
+	round := 1
+	maxRounds := 20
+	done := false
+
+	for {
+		if done || round > maxRounds {
+			break
+		}
+
+		// fmt.Printf("Round %d\n", round)
+
+		for _, monkey := range monkeys {
+			// fmt.Printf("\tMonkey %d:\n", monkey.id)
+			for _, initialWorry := range monkey.items {
+
+				// fmt.Printf("\t\tMonkey inspects an item with worry level of %d\n", initialWorry)
+				// After each monkey inspects an item but before it tests your worry level,
+				// your relief that the monkey's inspection didn't damage the item causes
+				// your worry level to be divided by three and rounded down to the nearest integer.
+				worry := monkey.operation(initialWorry)
+				// fmt.Printf("\t\t\tWorry level after operation is %d\n", worry)
+				// fmt.Printf("\t")
+				worry = worry / 3
+				// fmt.Printf("\t\t\tWorry level is divided and is now %d\n", worry)
+
+				test := worry%monkey.testDivisor == 0
+				// fmt.Printf("\t\t\tDoes test pass? %t\n", test)
+
+				monkey.count++
+
+				var nextMonkey int
+				switch test {
+				case true:
+					nextMonkey = monkey.testTrue
+				case false:
+					nextMonkey = monkey.testFalse
+				}
+
+				// fmt.Printf("\t\t\tItem with worry level %d is thrown to monkey %d\n", worry, nextMonkey)
+				monkeys[nextMonkey].items = append(monkeys[nextMonkey].items, worry)
+			}
+			monkey.items = make([]int, 0)
+		}
+
+		allEmpty := true
+		for _, m := range monkeys {
+			// fmt.Printf("monkey %d: %+v\n", m.id, m.items)
+			if len(m.items) != 0 {
+				allEmpty = false
+			}
+		}
+
+		// fmt.Println()
+
+		done = allEmpty
+		round++
+	}
 
 	for _, m := range monkeys {
-		fmt.Printf("%+v\n\n", m)
+		fmt.Printf("monkey %d: %d\n", m.id, m.count)
 	}
+
+	fmt.Println("done")
 }
 
 // Regexes are kind of slow, but it's good practice!
