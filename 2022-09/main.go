@@ -68,22 +68,16 @@ func partTwo(input []string) {
 		dir, mag := parseInstruction(line)
 
 		for m := 0; m < mag; m++ {
-			// Copy into a new var so we can mess with it
 			next := rope
 
 			for k := 0; k < len(rope); k++ {
 				// The head of the rope is ~* special *~
 				if k == 0 {
-					next[k] = MoveHead(rope[k], dir)
+					next[k] = moveHead(rope[k], dir)
 					continue
 				}
 
-				// Compare the current to the "last" (headmost) in the rope
 				comp := next[k-1]
-
-				// If the current overlaps the last, even after it's already moved,
-				// then they're stacked. The assumption is this only happens in the starting
-				// position. Either way, nothing to be done.
 				if !comp.IsEqual(&rope[k]) && !comp.IsAdjacent(&rope[k]) {
 					if comp.X > rope[k].X {
 						rope[k].X++
@@ -104,13 +98,14 @@ func partTwo(input []string) {
 					tailPositionsByKey[next[k].ToString()] = true
 				}
 			}
+
 			rope = next
 		}
 	}
 	fmt.Println(len(tailPositionsByKey))
 }
 
-func MoveHead(c Coords, dir string) Coords {
+func moveHead(c Coords, dir string) Coords {
 	next := c
 	switch dir {
 	case "U":
