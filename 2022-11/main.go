@@ -11,7 +11,8 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	partOne(input)
+	monke(input, 20, true)     // One
+	monke(input, 10000, false) // partTwo
 }
 
 type MonkeyFn func(old int) int
@@ -25,7 +26,7 @@ type Monkey struct {
 	count       int
 }
 
-func partOne(input []string) {
+func monke(input []string, maxRounds int, shouldDivide bool) {
 	monkeys := parseMonkeys(input)
 
 	allDivisors := 1
@@ -34,36 +35,24 @@ func partOne(input []string) {
 	}
 
 	round := 1
-	maxRounds := 10000
-
 	for {
 		if round > maxRounds {
 			break
 		}
 
-		// fmt.Printf("Round %d\n", round)
-
 		for _, monkey := range monkeys {
-			// fmt.Printf("\tMonkey %d:\n", monkey.id)
 			for _, initialWorry := range monkey.items {
+				monkey.count++
 
-				// fmt.Printf("\t\tMonkey inspects an item with worry level of %d\n", initialWorry)
-				// After each monkey inspects an item but before it tests your worry level,
-				// your relief that the monkey's inspection didn't damage the item causes
-				// your worry level to be divided by three and rounded down to the nearest integer.
 				worry := monkey.operation(initialWorry)
-				// fmt.Printf("\t\t\tWorry level after operation is %d\n", worry)
-				// fmt.Printf("\t")
-				// worry = worry / 3
-				// fmt.Printf("\t\t\tWorry level is divided and is now %d\n", worry)
 
-				worry = worry % allDivisors
+				if shouldDivide {
+					worry = worry / 3
+				} else {
+					worry = worry % allDivisors
+				}
 
 				test := worry%monkey.testDivisor == 0
-
-				// fmt.Printf("\t\t\tDoes test pass? %t\n", test)
-
-				monkey.count++
 
 				var nextMonkey int
 				switch test {
@@ -77,26 +66,12 @@ func partOne(input []string) {
 			}
 			monkey.items = make([]int, 0)
 		}
-
-		// allEmpty := true
-
-		if round == 20 || round%1000 == 0 {
-			fmt.Printf("=== After round %d ====\n", round)
-			for _, m := range monkeys {
-				fmt.Printf("monkey %d: %d\n", m.id, m.count)
-				// if len(m.items) != 0 {
-				// allEmpty = false
-				// }
-			}
-		}
-
 		round++
 	}
 
 	biggest := 0
 	secondBiggest := 0
 	for _, m := range monkeys {
-		// fmt.Printf("monkey %d: %d\n", m.id, m.count)
 		switch {
 		case m.count > biggest:
 			secondBiggest = biggest
@@ -106,10 +81,10 @@ func partOne(input []string) {
 		}
 	}
 
-	fmt.Println(biggest, secondBiggest, biggest*secondBiggest)
+	fmt.Println(biggest * secondBiggest)
 }
 
-// Regexes are kind of slow, but it's good practice!
+// Regexes are kind of slow, but it's good practice! I guess!!!!!!
 var mre = regexp.MustCompile(`^Monkey (\d+):$`)
 var sre = regexp.MustCompile(`^Starting items: (?:(\d+)(?:,\s)?)+$`)
 var ore = regexp.MustCompile(`^Operation: new = old ([+*]) (\w+)`)
@@ -185,6 +160,7 @@ func parseOperation(line string) MonkeyFn {
 }
 
 func parseTestDivisor(line string) int {
+	// wtf
 	m := dre.FindAllStringSubmatch(line, -1)[0][1]
 	i, err := strconv.Atoi(m)
 	if err != nil {
@@ -194,6 +170,7 @@ func parseTestDivisor(line string) int {
 }
 
 func parseTargetMonkey(line string) int {
+	// wtf?!
 	split := strings.Split(line, " ")
 	p := split[len(split)-1]
 	i, err := strconv.Atoi(p)
