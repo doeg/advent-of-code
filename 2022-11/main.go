@@ -27,16 +27,17 @@ type Monkey struct {
 
 func partOne(input []string) {
 	monkeys := parseMonkeys(input)
-	// for _, m := range monkeys {
-	// 	fmt.Printf("%+v\n\n", m)
-	// }
+
+	allDivisors := 1
+	for _, m := range monkeys {
+		allDivisors *= m.testDivisor
+	}
 
 	round := 1
-	maxRounds := 20
-	done := false
+	maxRounds := 10000
 
 	for {
-		if done || round > maxRounds {
+		if round > maxRounds {
 			break
 		}
 
@@ -53,10 +54,13 @@ func partOne(input []string) {
 				worry := monkey.operation(initialWorry)
 				// fmt.Printf("\t\t\tWorry level after operation is %d\n", worry)
 				// fmt.Printf("\t")
-				worry = worry / 3
+				// worry = worry / 3
 				// fmt.Printf("\t\t\tWorry level is divided and is now %d\n", worry)
 
+				worry = worry % allDivisors
+
 				test := worry%monkey.testDivisor == 0
+
 				// fmt.Printf("\t\t\tDoes test pass? %t\n", test)
 
 				monkey.count++
@@ -69,31 +73,40 @@ func partOne(input []string) {
 					nextMonkey = monkey.testFalse
 				}
 
-				// fmt.Printf("\t\t\tItem with worry level %d is thrown to monkey %d\n", worry, nextMonkey)
 				monkeys[nextMonkey].items = append(monkeys[nextMonkey].items, worry)
 			}
 			monkey.items = make([]int, 0)
 		}
 
-		allEmpty := true
-		for _, m := range monkeys {
-			// fmt.Printf("monkey %d: %+v\n", m.id, m.items)
-			if len(m.items) != 0 {
-				allEmpty = false
+		// allEmpty := true
+
+		if round == 20 || round%1000 == 0 {
+			fmt.Printf("=== After round %d ====\n", round)
+			for _, m := range monkeys {
+				fmt.Printf("monkey %d: %d\n", m.id, m.count)
+				// if len(m.items) != 0 {
+				// allEmpty = false
+				// }
 			}
 		}
 
-		// fmt.Println()
-
-		done = allEmpty
 		round++
 	}
 
+	biggest := 0
+	secondBiggest := 0
 	for _, m := range monkeys {
-		fmt.Printf("monkey %d: %d\n", m.id, m.count)
+		// fmt.Printf("monkey %d: %d\n", m.id, m.count)
+		switch {
+		case m.count > biggest:
+			secondBiggest = biggest
+			biggest = m.count
+		case m.count > secondBiggest:
+			secondBiggest = m.count
+		}
 	}
 
-	fmt.Println("done")
+	fmt.Println(biggest, secondBiggest, biggest*secondBiggest)
 }
 
 // Regexes are kind of slow, but it's good practice!
