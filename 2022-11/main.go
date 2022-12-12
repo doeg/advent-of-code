@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 	"regexp"
 	"strconv"
 	"strings"
@@ -11,87 +12,98 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	partOne(input)
+	monke(input, 20, true)
+	// monke(input, 10000, false)
 }
 
-type MonkeyFn func(old int) int
+type MonkeyFn func(old *big.Int) *big.Int
 type Monkey struct {
 	id          int
-	items       []int
+	items       []*big.Int
 	operation   MonkeyFn
-	testDivisor int
+	testDivisor *big.Int
 	testTrue    int
 	testFalse   int
 	count       int
 }
 
-func partOne(input []string) {
+func monke(input []string, maxRounds int, shouldDivide bool) {
+	// fmt.Println(math.MaxInt)
 	monkeys := parseMonkeys(input)
 	// for _, m := range monkeys {
-	// 	fmt.Printf("%+v\n\n", m)
+	// 	fmt.Println("monkey", m.id)
+	// 	fmt.Println(m.items)
+	// 	fmt.Println(m.testDivisor)
+	// 	fmt.Println(m.testTrue)
+	// 	fmt.Println(m.testFalse)
+	// 	// fmt.Println(m.operation)
 	// }
 
 	round := 1
-	maxRounds := 20
-	done := false
 
 	for {
-		if done || round > maxRounds {
+		if round > maxRounds {
 			break
 		}
 
-		// fmt.Printf("Round %d\n", round)
+		fmt.Printf("\n\nRound %d\n", round)
 
 		for _, monkey := range monkeys {
-			// fmt.Printf("\tMonkey %d:\n", monkey.id)
+			// fmt.Printf("\tMonkey %d, %+v\n", monkey.id, monkey.items)
 			for _, initialWorry := range monkey.items {
-
-				// fmt.Printf("\t\tMonkey inspects an item with worry level of %d\n", initialWorry)
-				// After each monkey inspects an item but before it tests your worry level,
-				// your relief that the monkey's inspection didn't damage the item causes
-				// your worry level to be divided by three and rounded down to the nearest integer.
 				worry := monkey.operation(initialWorry)
-				// fmt.Printf("\t\t\tWorry level after operation is %d\n", worry)
-				// fmt.Printf("\t")
-				worry = worry / 3
-				// fmt.Printf("\t\t\tWorry level is divided and is now %d\n", worry)
-
-				test := worry%monkey.testDivisor == 0
-				// fmt.Printf("\t\t\tDoes test pass? %t\n", test)
-
 				monkey.count++
+
+				if shouldDivide {
+					worry = worry.Div(worry, big.NewInt(int64(3)))
+				}
+
+				test := worry.Mod(worry, monkey.testDivisor).Cmp(big.NewInt(0))
 
 				var nextMonkey int
 				switch test {
-				case true:
+				case 0:
 					nextMonkey = monkey.testTrue
-				case false:
+				default:
 					nextMonkey = monkey.testFalse
 				}
 
 				// fmt.Printf("\t\t\tItem with worry level %d is thrown to monkey %d\n", worry, nextMonkey)
 				monkeys[nextMonkey].items = append(monkeys[nextMonkey].items, worry)
 			}
-			monkey.items = make([]int, 0)
+			monkey.items = make([]*big.Int, 0)
 		}
 
-		allEmpty := true
+		// shouldPrint := round == 1 || round == 20 || round == 1000 || round == 2000 || round == 3000 || round == 4000 || round == 5000 || round == 6000 || round == 7000 || round == 8000 || round == 9000 || round == 10000
+
 		for _, m := range monkeys {
-			// fmt.Printf("monkey %d: %+v\n", m.id, m.items)
-			if len(m.items) != 0 {
-				allEmpty = false
-			}
+			fmt.Printf("monkey %d: %+v\n", m.id, m.items)
+			// fmt.Printf("monkey %d: %d\n", m.id, m.count)
 		}
 
 		// fmt.Println()
-
-		done = allEmpty
 		round++
 	}
 
+	fmt.Println("\n==== RESULTS ====")
+
+	biggest := 0
+	secondBiggest := 0
+
 	for _, m := range monkeys {
 		fmt.Printf("monkey %d: %d\n", m.id, m.count)
+		switch {
+		case m.count > biggest:
+			secondBiggest = biggest
+			biggest = m.count
+		case m.count > secondBiggest:
+			secondBiggest = m.count
+		}
 	}
+	fmt.Println()
+
+	fmt.Println(biggest, secondBiggest)
+	fmt.Println(biggest * secondBiggest)
 
 	fmt.Println("done")
 }
@@ -132,15 +144,15 @@ func parseMonkeys(input []string) []*Monkey {
 	return monkeys
 }
 
-func parseStartingItems(l string) []int {
+func parseStartingItems(l string) []*big.Int {
 	// This is so gross; pls use a regex
 	p1 := strings.TrimSpace(strings.Split(l, ":")[1])
 	p2 := strings.Split(p1, ",")
 
-	items := make([]int, 0)
+	items := make([]*big.Int, 0)
 	for _, p := range p2 {
 		i, _ := strconv.Atoi(strings.TrimSpace(p))
-		items = append(items, i)
+		items = append(items, big.NewInt(int64(i)))
 	}
 
 	return items
@@ -150,34 +162,35 @@ func parseOperation(line string) MonkeyFn {
 	parts := ore.FindAllStringSubmatch(line, -1)[0]
 	operand := parts[1]
 	val, err := strconv.Atoi(parts[2])
+	bigval := big.NewInt(int64(val))
 
 	switch operand {
 	case "+":
-		return func(old int) int {
+		return func(old *big.Int) *big.Int {
 			if err != nil {
-				return old + old
+				return old.Add(old, old)
 			}
-			return old + val
+			return old.Add(old, bigval)
 		}
 	case "*":
-		return func(old int) int {
+		return func(old *big.Int) *big.Int {
 			if err != nil {
-				return old * old
+				return old.Mul(old, old)
 			}
-			return old * val
+			return old.Mul(old, bigval)
 		}
 	default:
 		panic("Unrecognized operand")
 	}
 }
 
-func parseTestDivisor(line string) int {
+func parseTestDivisor(line string) *big.Int {
 	m := dre.FindAllStringSubmatch(line, -1)[0][1]
 	i, err := strconv.Atoi(m)
 	if err != nil {
 		panic(err)
 	}
-	return i
+	return big.NewInt(int64(i))
 }
 
 func parseTargetMonkey(line string) int {
