@@ -12,8 +12,8 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	monke(input, 20, true)
-	// monke(input, 10000, false)
+	// monke(input, 20, true)
+	monke(input, 10000, false)
 }
 
 type MonkeyFn func(old *big.Int) *big.Int
@@ -30,14 +30,6 @@ type Monkey struct {
 func monke(input []string, maxRounds int, shouldDivide bool) {
 	// fmt.Println(math.MaxInt)
 	monkeys := parseMonkeys(input)
-	// for _, m := range monkeys {
-	// 	fmt.Println("monkey", m.id)
-	// 	fmt.Println(m.items)
-	// 	fmt.Println(m.testDivisor)
-	// 	fmt.Println(m.testTrue)
-	// 	fmt.Println(m.testFalse)
-	// 	// fmt.Println(m.operation)
-	// }
 
 	round := 1
 
@@ -46,25 +38,34 @@ func monke(input []string, maxRounds int, shouldDivide bool) {
 			break
 		}
 
-		fmt.Printf("\n\nRound %d\n", round)
+		fmt.Printf("Round %d\n", round)
 
 		for _, monkey := range monkeys {
 			// fmt.Printf("\tMonkey %d, %+v\n", monkey.id, monkey.items)
 			for _, initialWorry := range monkey.items {
+				// fmt.Printf("\t\tWorry level initially %+v\n", initialWorry)
+
 				worry := monkey.operation(initialWorry)
+				// fmt.Printf("\t\t\tWorry after operation: %+v\n", worry)
+
 				monkey.count++
 
 				if shouldDivide {
 					worry = worry.Div(worry, big.NewInt(int64(3)))
+					// fmt.Printf("\t\t\tWorry after division: %+v\n", worry)
 				}
 
-				test := worry.Mod(worry, monkey.testDivisor).Cmp(big.NewInt(0))
+				mw := new(big.Int)
+				mw = mw.Set(worry)
+				test := mw.Mod(mw, monkey.testDivisor).Cmp(big.NewInt(0))
 
 				var nextMonkey int
 				switch test {
 				case 0:
+					// fmt.Printf("\t\t\tTRUE; Worry level %+v thrown to monkey %d\n", worry, monkey.testTrue)
 					nextMonkey = monkey.testTrue
 				default:
+					// fmt.Printf("\t\t\tFALSE; Worry level %+v thrown to monkey %d\n", worry, monkey.testFalse)
 					nextMonkey = monkey.testFalse
 				}
 
@@ -74,12 +75,15 @@ func monke(input []string, maxRounds int, shouldDivide bool) {
 			monkey.items = make([]*big.Int, 0)
 		}
 
-		// shouldPrint := round == 1 || round == 20 || round == 1000 || round == 2000 || round == 3000 || round == 4000 || round == 5000 || round == 6000 || round == 7000 || round == 8000 || round == 9000 || round == 10000
+		shouldPrint := round == 1 || round == 20 || round == 1000 || round == 2000 || round == 3000 || round == 4000 || round == 5000 || round == 6000 || round == 7000 || round == 8000 || round == 9000 || round == 10000
 
-		for _, m := range monkeys {
-			fmt.Printf("monkey %d: %+v\n", m.id, m.items)
-			// fmt.Printf("monkey %d: %d\n", m.id, m.count)
+		if shouldPrint {
+			fmt.Printf("==== After round %d ====", round)
 		}
+		// for _, m := range monkeys {
+		// 	// fmt.Printf("monkey %d: %+v\n", m.id, m.items)
+		// 	// fmt.Printf("monkey %d: %d\n", m.id, m.count)
+		// }
 
 		// fmt.Println()
 		round++

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/big"
 	"reflect"
 	"testing"
 )
@@ -41,28 +42,56 @@ func TestParseStartingItems(t *testing.T) {
 func TestParseOperand(t *testing.T) {
 	tests := []struct {
 		str      string
-		inputs   []int
-		expected []int
+		inputs   []*big.Int
+		expected []*big.Int
 	}{
 		{
-			str:      "Operation: new = old * 19",
-			inputs:   []int{79, 98},
-			expected: []int{1501, 1862},
+			str: "Operation: new = old * 19",
+			inputs: []*big.Int{
+				big.NewInt(int64(79)),
+				big.NewInt(int64(98)),
+			},
+			expected: []*big.Int{
+				big.NewInt(int64(1501)),
+				big.NewInt(int64(1862)),
+			},
 		},
 		{
-			str:      "Operation: new = old + 6",
-			inputs:   []int{54, 65, 75, 74},
-			expected: []int{60, 71, 81, 80},
+			str: "Operation: new = old + 6",
+			inputs: []*big.Int{
+				big.NewInt(int64(54)),
+				big.NewInt(int64(65)),
+				big.NewInt(int64(75)),
+				big.NewInt(int64(74)),
+			},
+			expected: []*big.Int{
+				big.NewInt(int64(60)),
+				big.NewInt(int64(71)),
+				big.NewInt(int64(81)),
+				big.NewInt(int64(80)),
+			},
 		},
 		{
-			str:      "Operation: new = old * old",
-			inputs:   []int{79, 60, 97},
-			expected: []int{6241, 3600, 9409},
+			str: "Operation: new = old * old",
+			inputs: []*big.Int{
+				big.NewInt(int64(79)),
+				big.NewInt(int64(60)),
+				big.NewInt(int64(97)),
+			},
+			expected: []*big.Int{
+				big.NewInt(int64(6241)),
+				big.NewInt(int64(3600)),
+				big.NewInt(int64(9409)),
+			},
 		},
 		{
-			str:      "Operation: new = old + old",
-			inputs:   []int{74},
-			expected: []int{148},
+			str: "Operation: new = old + old",
+			inputs: []*big.Int{
+				big.NewInt(int64(74)),
+			},
+			expected: []*big.Int{
+				big.NewInt(int64(148)),
+			},
 		},
 	}
 
@@ -72,7 +101,7 @@ func TestParseOperand(t *testing.T) {
 			for i, old := range tt.inputs {
 				result := fn(old)
 				expected := tt.expected[i]
-				if result != expected {
+				if result.Cmp(expected) != 0 {
 					t.Errorf("Input: %d, expected: %d, result: %d", old, expected, result)
 				}
 			}
