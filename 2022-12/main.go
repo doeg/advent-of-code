@@ -10,12 +10,22 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	partOne(input)
+	// partOne(input)
+	partTwo(input)
 }
 
 func partOne(input []string) {
-	grid, start := buildGrid(input)
-	findShortestPath(grid, start)
+	grid, starts := buildGrid(input, "S")
+	for _, start := range starts {
+		findShortestPath(grid, start)
+	}
+}
+
+func partTwo(input []string) {
+	grid, starts := buildGrid(input, "a")
+	for _, start := range starts {
+		findShortestPath(grid, start)
+	}
 }
 
 func findShortestPath(grid [][]*Node, source *Node) {
@@ -147,8 +157,8 @@ func extractMin(queue []*Node, dist map[string]int) (*Node, []*Node) {
 	return smallest, queue
 }
 
-func buildGrid(input []string) ([][]*Node, *Node) {
-	var start *Node
+func buildGrid(input []string, startChar string) ([][]*Node, []*Node) {
+	starts := make([]*Node, 0)
 
 	grid := make([][]*Node, len(input))
 	for row, line := range input {
@@ -156,13 +166,13 @@ func buildGrid(input []string) ([][]*Node, *Node) {
 		for col, char := range line {
 			node := NewNode(row, col, char)
 			grid[row][col] = node
-			if node.label == "S" {
-				start = node
+			if node.label == startChar || node.label == "S" {
+				starts = append(starts, node)
 			}
 		}
 	}
 
-	return grid, start
+	return grid, starts
 }
 
 type Node struct {
