@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math"
-	"strings"
 
 	"github.com/doeg/advent-of-code/util"
 )
@@ -23,6 +22,7 @@ func partOne(input []string) {
 
 func partTwo(input []string) {
 	grid, starts := buildGrid(input, "a")
+	fmt.Println(len(starts))
 	for _, start := range starts {
 		findShortestPath(grid, start)
 	}
@@ -55,7 +55,7 @@ func findShortestPath(grid [][]*Node, source *Node) {
 		u, newQueue := extractMin(queue, dist)
 
 		if u.label == "E" {
-			fmt.Println("DONE!")
+			// fmt.Println("DONE!")
 			printPath(prev, u)
 			return
 		}
@@ -90,7 +90,7 @@ func printPath(prev map[string]*Node, target *Node) {
 		u = prev[u.toKey()]
 	}
 
-	fmt.Println(strings.Join(s, " -> "))
+	// fmt.Println(strings.Join(s, " -> "))
 	fmt.Println(len(s) - 1)
 }
 
