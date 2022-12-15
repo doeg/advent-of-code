@@ -3,11 +3,17 @@ package main
 import (
 	"fmt"
 	"math"
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/doeg/advent-of-code/util"
 )
 
 func main() {
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	input := util.ReadInput()
 	// partOne(input)
 	partTwo(input)
@@ -15,20 +21,18 @@ func main() {
 
 func partOne(input []string) {
 	grid, starts := buildGrid(input, "S")
-	for _, start := range starts {
-		findShortestPath(grid, start)
-	}
+	findShortestPath(grid, starts)
 }
 
 func partTwo(input []string) {
 	grid, starts := buildGrid(input, "a")
 	fmt.Println(len(starts))
-	for _, start := range starts {
-		findShortestPath(grid, start)
-	}
+	findShortestPath(grid, starts)
+	// for _, start := range starts {
+	// }
 }
 
-func findShortestPath(grid [][]*Node, source *Node) {
+func findShortestPath(grid [][]*Node, starts []*Node) {
 	// dist contains the current distances from 'source' to
 	// other vertices; i.e., dist[u] is the current distance from
 	// the 'source' to vertex u.
@@ -43,13 +47,14 @@ func findShortestPath(grid [][]*Node, source *Node) {
 
 	for _, row := range grid {
 		for _, node := range row {
-			dist[node.toKey()] = math.MaxInt
+			dist[node.key] = math.MaxInt
 			queue = append(queue, node)
 		}
 	}
 
-	dist[source.toKey()] = 0
-	queue = append(queue, source)
+	for _, source := range starts {
+		dist[source.key] = 0
+	}
 
 	for len(queue) > 0 {
 		u, newQueue := extractMin(queue, dist)
@@ -68,10 +73,10 @@ func findShortestPath(grid [][]*Node, source *Node) {
 				continue
 			}
 
-			alt := dist[u.toKey()] + 1
-			if alt < dist[v.toKey()] {
-				dist[v.toKey()] = alt
-				prev[v.toKey()] = u
+			alt := dist[u.key] + 1
+			if alt < dist[v.key] {
+				dist[v.key] = alt
+				prev[v.key] = u
 			}
 		}
 	}
@@ -86,8 +91,8 @@ func printPath(prev map[string]*Node, target *Node) {
 			break
 		}
 
-		s = append(s, u.toKey())
-		u = prev[u.toKey()]
+		s = append(s, u.key)
+		u = prev[u.key]
 	}
 
 	// fmt.Println(strings.Join(s, " -> "))
@@ -126,7 +131,7 @@ func canMove(from, to *Node) bool {
 
 func has(queue []*Node, target *Node) bool {
 	for _, node := range queue {
-		if node.toKey() == target.toKey() {
+		if node.key == target.key {
 			return true
 		}
 	}
@@ -144,7 +149,7 @@ func extractMin(queue []*Node, dist map[string]int) (*Node, []*Node) {
 	smallest := queue[0]
 
 	for i, node := range queue {
-		if dist[node.toKey()] < dist[smallest.toKey()] {
+		if dist[node.key] < dist[smallest.key] {
 			smallest = node
 			smallestIdx = i
 		}
@@ -180,6 +185,7 @@ type Node struct {
 	col       int
 	elevation rune
 	label     string
+	key       string
 }
 
 func NewNode(row, col int, elevation rune) *Node {
@@ -187,6 +193,7 @@ func NewNode(row, col int, elevation rune) *Node {
 		row:       row,
 		col:       col,
 		elevation: elevation,
+		key:       fmt.Sprintf("%d,%d", row, col),
 		label:     string(elevation),
 	}
 
@@ -198,8 +205,4 @@ func NewNode(row, col int, elevation rune) *Node {
 	}
 
 	return node
-}
-
-func (node *Node) toKey() string {
-	return fmt.Sprintf("%d,%d", node.row, node.col)
 }
