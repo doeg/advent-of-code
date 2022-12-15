@@ -28,6 +28,8 @@ func partOne(input []string) {
 
 func compare(leftInput, rightInput string) {
 	left := parse(leftInput)
+	fmt.Println(left)
+
 	printTree(left, 0)
 }
 
@@ -63,6 +65,9 @@ type Token struct {
 // and returns the root node.
 func parse(input string) *Node {
 	tokens := lex(input)
+	for _, t := range tokens {
+		fmt.Println(t.tokenType, t.value)
+	}
 
 	// Each packet is guaranteed to be a well-formed list,
 	// so we can start there.
@@ -76,7 +81,7 @@ func parseList(tokens []*Token, parent *Node) *Node {
 		parent:   parent,
 	}
 
-	for i, token := range tokens {
+	for _, token := range tokens {
 		switch token.tokenType {
 		case TOKEN_INTEGER:
 			in := &Node{nodeType: NODE_INT, value: token.value}
@@ -92,8 +97,11 @@ func parseList(tokens []*Token, parent *Node) *Node {
 }
 
 func printTree(node *Node, depth int) {
+	fmt.Printf("+%v", node)
+
 	prefix := strings.Repeat("--", depth)
-	fmt.Println(prefix, "*", depth)
+	fmt.Println(prefix, "*")
+
 	for _, n := range node.children {
 		switch n.nodeType {
 		case NODE_INT:
