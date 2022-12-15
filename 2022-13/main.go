@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/doeg/advent-of-code/util"
 )
@@ -29,8 +27,7 @@ func partOne(input []string) {
 func compare(leftInput, rightInput string) {
 	left := parse(leftInput)
 	fmt.Println(left)
-
-	printTree(left, 0)
+	// printTree(left, 0)
 }
 
 type Node struct {
@@ -47,178 +44,182 @@ const (
 	NODE_INT
 )
 
-type TokenType string
-
-const (
-	TOKEN_LIST_START = "TOKEN_LIST_START"
-	TOKEN_LIST_END   = "TOKEN_LIST_END"
-	TOKEN_INTEGER    = "TOKEN_INTEGER"
-	TOKEN_COMMA      = "TOKEN_COMMA"
-)
-
-type Token struct {
-	tokenType string
-	value     int
-}
-
-// Parses a packet string into a tree of Nodes
-// and returns the root node.
 func parse(input string) *Node {
-	tokens := lex(input)
-	for _, t := range tokens {
-		fmt.Println(t.tokenType, t.value)
-	}
-
-	// Each packet is guaranteed to be a well-formed list,
-	// so we can start there.
-	return parseList(tokens, nil)
+	fmt.Println(input)
 }
 
-func parseList(tokens []*Token, parent *Node) *Node {
-	node := &Node{
-		children: make([]*Node, 0),
-		nodeType: NODE_LIST,
-		parent:   parent,
-	}
+// type TokenType string
 
-	for _, token := range tokens {
-		switch token.tokenType {
-		case TOKEN_INTEGER:
-			in := &Node{nodeType: NODE_INT, value: token.value}
-			node.children = append(node.children, in)
-		default:
+// const (
+// 	TOKEN_LIST_START = "TOKEN_LIST_START"
+// 	TOKEN_LIST_END   = "TOKEN_LIST_END"
+// 	TOKEN_INTEGER    = "TOKEN_INTEGER"
+// 	TOKEN_COMMA      = "TOKEN_COMMA"
+// )
 
-			// TODO
-			continue
-		}
-	}
-	fmt.Println(node.children)
-	return node
-}
+// type Token struct {
+// 	tokenType string
+// 	value     int
+// }
 
-func printTree(node *Node, depth int) {
-	fmt.Printf("+%v", node)
+// // Parses a packet string into a tree of Nodes
+// // and returns the root node.
+// func parse(input string) *Node {
+// 	tokens := lex(input)
+// 	for _, t := range tokens {
+// 		fmt.Println(t.tokenType, t.value)
+// 	}
 
-	prefix := strings.Repeat("--", depth)
-	fmt.Println(prefix, "*")
+// 	// Each packet is guaranteed to be a well-formed list,
+// 	// so we can start there.
+// 	return parseList(tokens, nil)
+// }
 
-	for _, n := range node.children {
-		switch n.nodeType {
-		case NODE_INT:
-			fmt.Println(prefix, "--", n.value)
-		case NODE_LIST:
-			printTree(n, depth+1)
-		}
-	}
-}
+// func parseList(tokens []*Token, parent *Node) *Node {
+// 	node := &Node{
+// 		children: make([]*Node, 0),
+// 		nodeType: NODE_LIST,
+// 		parent:   parent,
+// 	}
 
-func lex(input string) []*Token {
-	tokens := make([]*Token, 0)
+// 	for _, token := range tokens {
+// 		switch token.tokenType {
+// 		case TOKEN_INTEGER:
+// 			in := &Node{nodeType: NODE_INT, value: token.value}
+// 			node.children = append(node.children, in)
+// 		default:
 
-	intBuffer := ""
+// 			// TODO
+// 			continue
+// 		}
+// 	}
+// 	fmt.Println(node.children)
+// 	return node
+// }
 
-	for _, r := range input {
-		switch r {
-		case '[':
-			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_START})
-		case ']':
-			if intBuffer != "" {
-				intToken := lexInt(intBuffer)
-				intBuffer = ""
-				tokens = append(tokens, intToken)
-			}
-			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_END})
-		case ',':
-			if intBuffer != "" {
-				intToken := lexInt(intBuffer)
-				intBuffer = ""
-				tokens = append(tokens, intToken)
-			}
-			tokens = append(tokens, &Token{tokenType: TOKEN_COMMA})
-		default:
-			intBuffer += string(r)
-		}
-	}
-	return tokens
-}
+// func printTree(node *Node, depth int) {
+// 	fmt.Printf("+%v", node)
 
-func lexInt(intBuffer string) *Token {
-	i, err := strconv.Atoi(intBuffer)
-	if err != nil {
-		panic(err)
-	}
-	return &Token{tokenType: TOKEN_INTEGER, value: i}
-}
+// 	prefix := strings.Repeat("--", depth)
+// 	fmt.Println(prefix, "*")
 
-// // type Node struct {
-// // 	parent   *Node
-// // 	nodeType NodeType
-// // 	children []*Node
-// // 	value    int
-// // }
+// 	for _, n := range node.children {
+// 		switch n.nodeType {
+// 		case NODE_INT:
+// 			fmt.Println(prefix, "--", n.value)
+// 		case NODE_LIST:
+// 			printTree(n, depth+1)
+// 		}
+// 	}
+// }
 
-// // type NodeType int
+// func lex(input string) []*Token {
+// 	tokens := make([]*Token, 0)
 
-// // const (
-// // 	List NodeType = iota
-// // 	Number
-// // )
+// 	intBuffer := ""
 
-// // func parse(input string) *Node {
-// // 	data := strings.Split(input, "")
-// // 	for _, datum := range data {
-// // 		fmt.Print(datum)
-// // 	}
-// // 	fmt.Println()
-// // }
+// 	for _, r := range input {
+// 		switch r {
+// 		case '[':
+// 			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_START})
+// 		case ']':
+// 			if intBuffer != "" {
+// 				intToken := lexInt(intBuffer)
+// 				intBuffer = ""
+// 				tokens = append(tokens, intToken)
+// 			}
+// 			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_END})
+// 		case ',':
+// 			if intBuffer != "" {
+// 				intToken := lexInt(intBuffer)
+// 				intBuffer = ""
+// 				tokens = append(tokens, intToken)
+// 			}
+// 			tokens = append(tokens, &Token{tokenType: TOKEN_COMMA})
+// 		default:
+// 			intBuffer += string(r)
+// 		}
+// 	}
+// 	return tokens
+// }
 
-// // // // Returns true if left and right packets are in the correct order.
-// // // //
-// // // // Packet data consists of lists and integers. Each list starts with [, ends with ],
-// // // // and contains zero or more comma-separated values (either integers or other lists).
-// // // func compare(left, right string) bool {
-// // // 	fmt.Println("FIRST", left)
-// // // 	fmt.Println("SECOND", right)
+// func lexInt(intBuffer string) *Token {
+// 	i, err := strconv.Atoi(intBuffer)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return &Token{tokenType: TOKEN_INTEGER, value: i}
+// }
 
-// // // 	// get the next item in the list
-// // // 	// maybe it can be an Item struct with a pointer to a list type and a value type?
-// // // 	// and that pointer to the list can be nil if the item is a value and vice versa.
-// // // 	// and: lists can contain pointers to their values... which suggests that I should
-// // // 	// build the parse tree ahead of time.
-// // // 	//
-// // // 	// leftNext := left.getNext()
-// // // 	// rightNext := right.getNext()
-
-// // // 	switch {
-// // // 	// If both values are integers, the lower integer should come first.
-// // // 	case leftNext.tokenType == tokenType.value && rightNext.tokenType == tokenType.value:
-// // // 		switch {
-// // // 		// If the left integer is lower than the right integer, the inputs are in the right order.
-// // // 		case leftNext.value < rightNext.value:
-// // // 			return true
-// // // 		// If the left integer is higher than the right integer, the inputs are not in the right order.
-// // // 		case leftNext.value > rightNext.value:
-// // // 			return false
-// // // 		// Otherwise, the inputs are the same integer; continue checking the next part of the input.
-// // // 		case leftNext.value == rightNext.value:
-// // // 			continue
-// // // 		}
-
-// // // 	// If both values are lists, compare the first value of each list, then the second value, and so on.
-// // // 	case leftNext.tokenType == tokenType.list && rightNext.tokenType == tokenType.list:
-// // // 		// If the left list runs out of items first, the inputs are in the right order.
-// // // 		// If the right list runs out of items first, the inputs are not in the right order.
-// // // 		// If the lists are the same length and no comparison makes a decision about the order, continue checking the next part of the input.
-
-// // // 	// If exactly one value is an integer, convert the integer to a list which contains that integer as its only value,
-// // // 	// then retry the comparison. For example, if comparing [0,0,0] and 2, convert the right value to [2] (a list containing 2);
-// // // 	// the result is then found by instead comparing [0,0,0] and [2].
-// // // 	case leftNext.tokenType == tokenType.list && rightNext.tokenType == tokenType.value:
-// // // 	case leftNext.tokenType == tokenType.value && rightNext.tokenType == tokenType.list:
-
-// // // 	default:
-// // // 		panic("Unhandled case")
-// // // 	}
-
-// // // 	return false
+// // // type Node struct {
+// // // 	parent   *Node
+// // // 	nodeType NodeType
+// // // 	children []*Node
+// // // 	value    int
 // // // }
+
+// // // type NodeType int
+
+// // // const (
+// // // 	List NodeType = iota
+// // // 	Number
+// // // )
+
+// // // func parse(input string) *Node {
+// // // 	data := strings.Split(input, "")
+// // // 	for _, datum := range data {
+// // // 		fmt.Print(datum)
+// // // 	}
+// // // 	fmt.Println()
+// // // }
+
+// // // // // Returns true if left and right packets are in the correct order.
+// // // // //
+// // // // // Packet data consists of lists and integers. Each list starts with [, ends with ],
+// // // // // and contains zero or more comma-separated values (either integers or other lists).
+// // // // func compare(left, right string) bool {
+// // // // 	fmt.Println("FIRST", left)
+// // // // 	fmt.Println("SECOND", right)
+
+// // // // 	// get the next item in the list
+// // // // 	// maybe it can be an Item struct with a pointer to a list type and a value type?
+// // // // 	// and that pointer to the list can be nil if the item is a value and vice versa.
+// // // // 	// and: lists can contain pointers to their values... which suggests that I should
+// // // // 	// build the parse tree ahead of time.
+// // // // 	//
+// // // // 	// leftNext := left.getNext()
+// // // // 	// rightNext := right.getNext()
+
+// // // // 	switch {
+// // // // 	// If both values are integers, the lower integer should come first.
+// // // // 	case leftNext.tokenType == tokenType.value && rightNext.tokenType == tokenType.value:
+// // // // 		switch {
+// // // // 		// If the left integer is lower than the right integer, the inputs are in the right order.
+// // // // 		case leftNext.value < rightNext.value:
+// // // // 			return true
+// // // // 		// If the left integer is higher than the right integer, the inputs are not in the right order.
+// // // // 		case leftNext.value > rightNext.value:
+// // // // 			return false
+// // // // 		// Otherwise, the inputs are the same integer; continue checking the next part of the input.
+// // // // 		case leftNext.value == rightNext.value:
+// // // // 			continue
+// // // // 		}
+
+// // // // 	// If both values are lists, compare the first value of each list, then the second value, and so on.
+// // // // 	case leftNext.tokenType == tokenType.list && rightNext.tokenType == tokenType.list:
+// // // // 		// If the left list runs out of items first, the inputs are in the right order.
+// // // // 		// If the right list runs out of items first, the inputs are not in the right order.
+// // // // 		// If the lists are the same length and no comparison makes a decision about the order, continue checking the next part of the input.
+
+// // // // 	// If exactly one value is an integer, convert the integer to a list which contains that integer as its only value,
+// // // // 	// then retry the comparison. For example, if comparing [0,0,0] and 2, convert the right value to [2] (a list containing 2);
+// // // // 	// the result is then found by instead comparing [0,0,0] and [2].
+// // // // 	case leftNext.tokenType == tokenType.list && rightNext.tokenType == tokenType.value:
+// // // // 	case leftNext.tokenType == tokenType.value && rightNext.tokenType == tokenType.list:
+
+// // // // 	default:
+// // // // 		panic("Unhandled case")
+// // // // 	}
+
+// // // // 	return false
+// // // // }
