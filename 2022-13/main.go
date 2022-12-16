@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/doeg/advent-of-code/util"
 )
@@ -26,8 +28,7 @@ func partOne(input []string) {
 
 func compare(leftInput, rightInput string) {
 	left := parse(leftInput)
-	fmt.Println(left)
-	// printTree(left, 0)
+	printTree(left, 0)
 }
 
 type Node struct {
@@ -45,111 +46,122 @@ const (
 )
 
 func parse(input string) *Node {
-	fmt.Println(input)
+	tokens := lex(input)
+
+	// Start at 1 to "skip" the initial opening brace
+	initialPos := 1
+	root, _ := parseList(tokens, nil, initialPos)
+	return root
 }
 
-// type TokenType string
+// parseList parses a list of tokens into a tree and returns
+// the root node. "pos" should skip the position of the opening
+// brace... this is weird and could probably be fixed.
+func parseList(tokens []*Token, parent *Node, startPos int) (*Node, int) {
+	node := &Node{
+		nodeType: NODE_LIST,
+		parent:   parent,
+		children: make([]*Node, 0),
+	}
 
-// const (
-// 	TOKEN_LIST_START = "TOKEN_LIST_START"
-// 	TOKEN_LIST_END   = "TOKEN_LIST_END"
-// 	TOKEN_INTEGER    = "TOKEN_INTEGER"
-// 	TOKEN_COMMA      = "TOKEN_COMMA"
-// )
+	pos := startPos
 
-// type Token struct {
-// 	tokenType string
-// 	value     int
-// }
+	for pos < len(tokens) {
+		token := tokens[pos]
+		switch token.tokenType {
+		case TOKEN_INTEGER:
+			node.children = append(node.children, &Node{
+				nodeType: NODE_INT,
+				parent:   node,
+				value:    token.value,
+			})
+			pos++
+		case TOKEN_LIST_START:
+			sublist, newPos := parseList(tokens, node, pos+1)
+			node.children = append(node.children, sublist)
+			pos = newPos
+		case TOKEN_LIST_END:
+			pos++
+			return node, pos
+		case TOKEN_COMMA:
+			pos++
+			continue
+		default:
+			panic("Unrecognized token")
+		}
+	}
 
-// // Parses a packet string into a tree of Nodes
-// // and returns the root node.
-// func parse(input string) *Node {
-// 	tokens := lex(input)
-// 	for _, t := range tokens {
-// 		fmt.Println(t.tokenType, t.value)
-// 	}
+	return node, pos
+}
 
-// 	// Each packet is guaranteed to be a well-formed list,
-// 	// so we can start there.
-// 	return parseList(tokens, nil)
-// }
+func printTree(node *Node, depth int) {
+	prefix := ""
+	if depth > 0 {
+		prefix = strings.Repeat("    ", depth) + "|──"
+	}
 
-// func parseList(tokens []*Token, parent *Node) *Node {
-// 	node := &Node{
-// 		children: make([]*Node, 0),
-// 		nodeType: NODE_LIST,
-// 		parent:   parent,
-// 	}
+	switch node.nodeType {
+	case NODE_INT:
+		fmt.Println(prefix, node.value)
+	case NODE_LIST:
+		fmt.Println(prefix, ".")
+		for _, n := range node.children {
+			printTree(n, depth+1)
+		}
+	}
+}
 
-// 	for _, token := range tokens {
-// 		switch token.tokenType {
-// 		case TOKEN_INTEGER:
-// 			in := &Node{nodeType: NODE_INT, value: token.value}
-// 			node.children = append(node.children, in)
-// 		default:
+type TokenType string
 
-// 			// TODO
-// 			continue
-// 		}
-// 	}
-// 	fmt.Println(node.children)
-// 	return node
-// }
+const (
+	TOKEN_LIST_START = "TOKEN_LIST_START"
+	TOKEN_LIST_END   = "TOKEN_LIST_END"
+	TOKEN_INTEGER    = "TOKEN_INTEGER"
+	TOKEN_COMMA      = "TOKEN_COMMA"
+)
 
-// func printTree(node *Node, depth int) {
-// 	fmt.Printf("+%v", node)
+type Token struct {
+	tokenType string
+	value     int
+}
 
-// 	prefix := strings.Repeat("--", depth)
-// 	fmt.Println(prefix, "*")
+func lex(input string) []*Token {
+	tokens := make([]*Token, 0)
 
-// 	for _, n := range node.children {
-// 		switch n.nodeType {
-// 		case NODE_INT:
-// 			fmt.Println(prefix, "--", n.value)
-// 		case NODE_LIST:
-// 			printTree(n, depth+1)
-// 		}
-// 	}
-// }
+	intBuffer := ""
 
-// func lex(input string) []*Token {
-// 	tokens := make([]*Token, 0)
+	for _, r := range input {
+		switch r {
+		case '[':
+			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_START})
+		case ']':
+			if intBuffer != "" {
+				intToken := lexInt(intBuffer)
+				intBuffer = ""
+				tokens = append(tokens, intToken)
+			}
+			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_END})
+		case ',':
+			if intBuffer != "" {
+				intToken := lexInt(intBuffer)
+				intBuffer = ""
+				tokens = append(tokens, intToken)
+			}
+			tokens = append(tokens, &Token{tokenType: TOKEN_COMMA})
+		default:
+			intBuffer += string(r)
+		}
+	}
+	return tokens
+}
 
-// 	intBuffer := ""
-
-// 	for _, r := range input {
-// 		switch r {
-// 		case '[':
-// 			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_START})
-// 		case ']':
-// 			if intBuffer != "" {
-// 				intToken := lexInt(intBuffer)
-// 				intBuffer = ""
-// 				tokens = append(tokens, intToken)
-// 			}
-// 			tokens = append(tokens, &Token{tokenType: TOKEN_LIST_END})
-// 		case ',':
-// 			if intBuffer != "" {
-// 				intToken := lexInt(intBuffer)
-// 				intBuffer = ""
-// 				tokens = append(tokens, intToken)
-// 			}
-// 			tokens = append(tokens, &Token{tokenType: TOKEN_COMMA})
-// 		default:
-// 			intBuffer += string(r)
-// 		}
-// 	}
-// 	return tokens
-// }
-
-// func lexInt(intBuffer string) *Token {
-// 	i, err := strconv.Atoi(intBuffer)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return &Token{tokenType: TOKEN_INTEGER, value: i}
-// }
+func lexInt(intBuffer string) *Token {
+	i, err := strconv.Atoi(intBuffer)
+	if err != nil {
+		panic(err)
+	}
+	return &Token{tokenType: TOKEN_INTEGER, value: i}
+}
 
 // // // type Node struct {
 // // // 	parent   *Node
