@@ -2,15 +2,22 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/doeg/advent-of-code/util"
 )
 
+type Packet struct {
+	root  *Node
+	input string
+}
+
 func main() {
 	input := util.ReadInput()
 	partOne(input)
+	partTwo(input)
 }
 
 func partOne(input []string) {
@@ -33,6 +40,40 @@ func partOne(input []string) {
 	}
 
 	fmt.Println(sum)
+}
+
+func partTwo(input []string) {
+	// allInput := make([]string, 0)
+	// allInput = append(allInput, "[[2]]", "[[6]]", input...)
+
+	allInput := make([]string, 0)
+	allInput = append(allInput, input...)
+	allInput = append(allInput, "[[2]]", "[[6]]")
+
+	trees := make([]*Packet, 0)
+	for _, line := range allInput {
+		if line != "" {
+			trees = append(trees, &Packet{
+				root:  parse(line),
+				input: line,
+			})
+		}
+	}
+
+	sort.Slice(trees, func(i, j int) bool {
+		left := trees[i]
+		right := trees[j]
+		result, _ := compareLists(left.root.children, right.root.children)
+		return result
+	})
+
+	result := 1
+	for i, packet := range trees {
+		if packet.input == "[[2]]" || packet.input == "[[6]]" {
+			result = result * (i + 1)
+		}
+	}
+	fmt.Println(result)
 }
 
 // Returns true if leftInput is smaller than rightInput.
