@@ -4,15 +4,9 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/doeg/advent-of-code/util"
 )
-
-type Packet struct {
-	root  *Node
-	input string
-}
 
 func main() {
 	input := util.ReadInput()
@@ -43,9 +37,6 @@ func partOne(input []string) {
 }
 
 func partTwo(input []string) {
-	// allInput := make([]string, 0)
-	// allInput = append(allInput, "[[2]]", "[[6]]", input...)
-
 	allInput := make([]string, 0)
 	allInput = append(allInput, input...)
 	allInput = append(allInput, "[[2]]", "[[6]]")
@@ -74,6 +65,11 @@ func partTwo(input []string) {
 		}
 	}
 	fmt.Println(result)
+}
+
+type Packet struct {
+	root  *Node
+	input string
 }
 
 // Returns true if leftInput is smaller than rightInput.
@@ -181,22 +177,6 @@ const (
 	NODE_INT
 )
 
-func (node *Node) toString() string {
-	switch node.nodeType {
-	case NODE_INT:
-		return fmt.Sprintf("INT{%d}", node.value)
-	case NODE_LIST:
-		s := "LIST{"
-		for _, c := range node.children {
-			s += c.toString()
-		}
-		s += "}"
-		return s
-	default:
-		return ""
-	}
-}
-
 func parse(input string) *Node {
 	tokens := lex(input)
 
@@ -244,23 +224,6 @@ func parseList(tokens []*Token, parent *Node, startPos int) (*Node, int) {
 	}
 
 	return node, pos
-}
-
-func printTree(node *Node, depth int) {
-	prefix := ""
-	if depth > 0 {
-		prefix = strings.Repeat("    ", depth) + "|──"
-	}
-
-	switch node.nodeType {
-	case NODE_INT:
-		fmt.Println(prefix, node.value)
-	case NODE_LIST:
-		fmt.Println(prefix, ".")
-		for _, n := range node.children {
-			printTree(n, depth+1)
-		}
-	}
 }
 
 type TokenType string
