@@ -54,7 +54,7 @@ func TestCompare(t *testing.T) {
 		{
 			left:     "[1,[2,2],3]",
 			right:    "[1,[2,2],4]",
-			expected: false,
+			expected: true,
 		},
 	}
 
