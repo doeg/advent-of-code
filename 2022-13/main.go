@@ -35,6 +35,7 @@ func partOne(input []string) {
 	fmt.Println(sum)
 }
 
+// Returns true if leftInput is smaller than rightInput.
 func compare(leftInput, rightInput string) bool {
 	left := parse(leftInput)
 	right := parse(rightInput)
@@ -46,7 +47,6 @@ func compare(leftInput, rightInput string) bool {
 }
 
 func compareLists(left, right []*Node) (bool, bool) {
-
 	pos := 0
 
 	for {
