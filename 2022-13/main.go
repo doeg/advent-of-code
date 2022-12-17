@@ -178,6 +178,7 @@ const (
 )
 
 func parse(input string) *Node {
+	// Could probably lex and parse in a single step but...! whatever!
 	tokens := lex(input)
 
 	// Start at 1 to "skip" the initial opening brace
