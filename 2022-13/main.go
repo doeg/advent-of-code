@@ -15,7 +15,6 @@ func main() {
 
 func partOne(input []string) {
 	pairIndex := 1
-	pairs := make([]int, 0)
 	sum := 0
 
 	for i := 0; i < len(input)-1; {
@@ -26,10 +25,6 @@ func partOne(input []string) {
 		default:
 			result := compare(input[i], input[i+1])
 			if result {
-				fmt.Println(input[i])
-				fmt.Println(input[i+1])
-				fmt.Println()
-				pairs = append(pairs, pairIndex)
 				sum += pairIndex
 			}
 			i += 2
@@ -37,7 +32,6 @@ func partOne(input []string) {
 		}
 	}
 
-	fmt.Println(pairs)
 	fmt.Println(sum)
 }
 
@@ -72,7 +66,6 @@ func compareLists(left, right []*Node) (bool, bool) {
 
 		ln := left[pos]
 		rn := right[pos]
-		fmt.Println("Comparing", ln.toString(), "vs", rn.toString())
 
 		// If both values are integers, the lower integer should come first.
 		if ln.nodeType == NODE_INT && rn.nodeType == NODE_INT {
