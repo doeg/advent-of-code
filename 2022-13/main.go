@@ -14,21 +14,123 @@ func main() {
 }
 
 func partOne(input []string) {
+	pairIndex := 1
+	pairs := make([]int, 0)
+	sum := 0
+
 	for i := 0; i < len(input)-1; {
 		line := input[i]
 		switch line {
 		case "":
 			i++
 		default:
-			compare(input[i], input[i+1])
+			result := compare(input[i], input[i+1])
+			if result {
+				fmt.Println(input[i])
+				fmt.Println(input[i+1])
+				fmt.Println()
+				pairs = append(pairs, pairIndex)
+				sum += pairIndex
+			}
 			i += 2
+			pairIndex++
 		}
 	}
+
+	fmt.Println(pairs)
+	fmt.Println(sum)
 }
 
-func compare(leftInput, rightInput string) {
+func compare(leftInput, rightInput string) bool {
 	left := parse(leftInput)
-	printTree(left, 0)
+	right := parse(rightInput)
+	result, certain := compareLists(left.children, right.children)
+	if !certain {
+		panic("Uncertain")
+	}
+	return result
+}
+
+func compareLists(left, right []*Node) (bool, bool) {
+
+	pos := 0
+
+	for {
+		// If the left list runs out of items first, the inputs are in the right order.
+		if pos >= len(left) && pos < len(right) {
+			return true, true
+		}
+
+		// If the right list runs out of items first, the inputs are not in the right order.
+		if pos < len(left) && pos >= len(right) {
+			return false, true
+		}
+
+		if pos >= len(left) && pos >= len(right) {
+			return true, false
+		}
+
+		ln := left[pos]
+		rn := right[pos]
+		fmt.Println("Comparing", ln.toString(), "vs", rn.toString())
+
+		// If both values are integers, the lower integer should come first.
+		if ln.nodeType == NODE_INT && rn.nodeType == NODE_INT {
+			// If the left integer is lower than the right integer, the inputs are in the right order.
+			if ln.value < rn.value {
+				return true, true
+			}
+
+			// If the left integer is higher than the right integer, the inputs are not in the right order.
+			if ln.value > rn.value {
+				return false, true
+			}
+
+			// Otherwise, the inputs are the same integer; continue checking the next part of the input.
+			pos++
+			continue
+		}
+
+		// If both values are lists, compare the first value of each list, then the second value, and so on.
+		if ln.nodeType == NODE_LIST && rn.nodeType == NODE_LIST {
+			result, certain := compareLists(ln.children, rn.children)
+			if certain {
+				return result, true
+			}
+
+			// If the lists are the same length and no comparison makes a decision about the order,
+			// continue checking the next part of the input.
+			pos++
+			continue
+		}
+
+		// If exactly one value is an integer, convert the integer to a list which contains that integer as its only value, then retry the comparison.
+		if ln.nodeType == NODE_INT && rn.nodeType == NODE_LIST {
+			result, certain := compareLists([]*Node{ln}, rn.children)
+			if certain {
+				return result, true
+			}
+
+			// If the lists are the same length and no comparison makes a decision about the order,
+			// continue checking the next part of the input.
+			pos++
+			continue
+		}
+
+		if ln.nodeType == NODE_LIST && rn.nodeType == NODE_INT {
+			result, certain := compareLists(ln.children, []*Node{rn})
+			if certain {
+				return result, true
+			}
+
+			// If the lists are the same length and no comparison makes a decision about the order,
+			// continue checking the next part of the input.
+			pos++
+			continue
+		}
+
+		pos++
+	}
 }
 
 type Node struct {
@@ -44,6 +146,22 @@ const (
 	NODE_LIST NodeType = iota
 	NODE_INT
 )
+
+func (node *Node) toString() string {
+	switch node.nodeType {
+	case NODE_INT:
+		return fmt.Sprintf("INT{%d}", node.value)
+	case NODE_LIST:
+		s := "LIST{"
+		for _, c := range node.children {
+			s += c.toString()
+		}
+		s += "}"
+		return s
+	default:
+		return ""
+	}
+}
 
 func parse(input string) *Node {
 	tokens := lex(input)
@@ -162,76 +280,3 @@ func lexInt(intBuffer string) *Token {
 	}
 	return &Token{tokenType: TOKEN_INTEGER, value: i}
 }
-
-// // // type Node struct {
-// // // 	parent   *Node
-// // // 	nodeType NodeType
-// // // 	children []*Node
-// // // 	value    int
-// // // }
-
-// // // type NodeType int
-
-// // // const (
-// // // 	List NodeType = iota
-// // // 	Number
-// // // )
-
-// // // func parse(input string) *Node {
-// // // 	data := strings.Split(input, "")
-// // // 	for _, datum := range data {
-// // // 		fmt.Print(datum)
-// // // 	}
-// // // 	fmt.Println()
-// // // }
-
-// // // // // Returns true if left and right packets are in the correct order.
-// // // // //
-// // // // // Packet data consists of lists and integers. Each list starts with [, ends with ],
-// // // // // and contains zero or more comma-separated values (either integers or other lists).
-// // // // func compare(left, right string) bool {
-// // // // 	fmt.Println("FIRST", left)
-// // // // 	fmt.Println("SECOND", right)
-
-// // // // 	// get the next item in the list
-// // // // 	// maybe it can be an Item struct with a pointer to a list type and a value type?
-// // // // 	// and that pointer to the list can be nil if the item is a value and vice versa.
-// // // // 	// and: lists can contain pointers to their values... which suggests that I should
-// // // // 	// build the parse tree ahead of time.
-// // // // 	//
-// // // // 	// leftNext := left.getNext()
-// // // // 	// rightNext := right.getNext()
-
-// // // // 	switch {
-// // // // 	// If both values are integers, the lower integer should come first.
-// // // // 	case leftNext.tokenType == tokenType.value && rightNext.tokenType == tokenType.value:
-// // // // 		switch {
-// // // // 		// If the left integer is lower than the right integer, the inputs are in the right order.
-// // // // 		case leftNext.value < rightNext.value:
-// // // // 			return true
-// // // // 		// If the left integer is higher than the right integer, the inputs are not in the right order.
-// // // // 		case leftNext.value > rightNext.value:
-// // // // 			return false
-// // // // 		// Otherwise, the inputs are the same integer; continue checking the next part of the input.
-// // // // 		case leftNext.value == rightNext.value:
-// // // // 			continue
-// // // // 		}
-
-// // // // 	// If both values are lists, compare the first value of each list, then the second value, and so on.
-// // // // 	case leftNext.tokenType == tokenType.list && rightNext.tokenType == tokenType.list:
-// // // // 		// If the left list runs out of items first, the inputs are in the right order.
-// // // // 		// If the right list runs out of items first, the inputs are not in the right order.
-// // // // 		// If the lists are the same length and no comparison makes a decision about the order, continue checking the next part of the input.
-
-// // // // 	// If exactly one value is an integer, convert the integer to a list which contains that integer as its only value,
-// // // // 	// then retry the comparison. For example, if comparing [0,0,0] and 2, convert the right value to [2] (a list containing 2);
-// // // // 	// the result is then found by instead comparing [0,0,0] and [2].
-// // // // 	case leftNext.tokenType == tokenType.list && rightNext.tokenType == tokenType.value:
-// // // // 	case leftNext.tokenType == tokenType.value && rightNext.tokenType == tokenType.list:
-
-// // // // 	default:
-// // // // 		panic("Unhandled case")
-// // // // 	}
-
-// // // // 	return false
-// // // // }

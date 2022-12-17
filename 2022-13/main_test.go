@@ -51,6 +51,11 @@ func TestCompare(t *testing.T) {
 			right:    "[1,[2,[3,[4,[5,6,0]]]],8,9]",
 			expected: false,
 		},
+		{
+			left:     "[1,[2,2],3]",
+			right:    "[1,[2,2],4]",
+			expected: false,
+		},
 	}
 
 	for _, tt := range tests {
