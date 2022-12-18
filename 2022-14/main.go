@@ -28,8 +28,8 @@ func simulate(sandMap *SandMap) int {
 
 	for {
 		// Simulate grains of sand until they start falling into the abyss.
-		rest := simulateGrain(sandMap)
-		if !rest {
+		atRest := simulateGrain(sandMap, grains)
+		if !atRest {
 			break
 		}
 
@@ -43,29 +43,38 @@ func simulate(sandMap *SandMap) int {
 // into the abyss, the grain is marked on the sandmap as a feature and
 // the function returns true. If the grain falls into the abyss,
 // the function returns false.
-func simulateGrain(sandMap *SandMap) bool {
-	// Set to the position of the spout
+func simulateGrain(sandMap *SandMap, idx int) bool {
+	// Set the initial position of the grain the position of the spout
 	x := 500
 	y := 0
 
-	for y <= sandMap.yMax {
-		fmt.Println(x, y)
-
+	for {
+		switch {
+		// The sand fell into the abyss!
+		case y > sandMap.yMax:
+			return false
 		// A unit of sand always falls down one step if possible.
-		dk := fmt.Sprintf("%d,%d", x, y+1)
-		fmt.Println(sandMap.features[dk])
-		if _, isBlocked := sandMap.features[dk]; isBlocked {
+		case sandMap.canMoveTo(x, y+1):
 			y++
 			continue
+		// If the tile immediately below is blocked (by rock or sand), the unit of sand
+		// attempts to instead move diagonally one step down and to the left.
+		case sandMap.canMoveTo(x-1, y+1):
+			y++
+			x--
+			continue
+		// If that tile is blocked, the unit of sand attempts to instead move
+		// diagonally one step down and to the right.
+		case sandMap.canMoveTo(x+1, y+1):
+			y++
+			x++
+			continue
+		// The sand can't move anywhere; it is at rest.
+		default:
+			sandMap.addFeature(x, y, FEATURE_SAND)
+			return true
 		}
-
-		fmt.Println("Sand is resting at", dk)
-		sandMap.features[dk] = FEATURE_SAND
-		return true
 	}
-
-	// The sand fell into the abyss!
-	return false
 }
 
 type SandMap struct {
@@ -81,6 +90,27 @@ func NewSandMap() *SandMap {
 	}
 }
 
+func (sandMap *SandMap) addFeature(x, y int, featureType FeatureType) {
+	k := fmt.Sprintf("%d,%d", x, y)
+	if _, ok := sandMap.features[k]; ok {
+		sandMap.print()
+		panic(fmt.Errorf("cannot place feature at %d,%d; feature already exists", x, y))
+	}
+	sandMap.features[k] = featureType
+}
+
+func (sandMap *SandMap) canMoveTo(x, y int) bool {
+	k := fmt.Sprintf("%d,%d", x, y)
+	_, ok := sandMap.features[k]
+	return !ok
+}
+
+const (
+	RockColor       = "\033[1;34m%s\033[0m"
+	SandColor       = "\033[1;36m%s\033[0m"
+	BackgroundColor = "\033[1;30m%s\033[0m"
+)
+
 func (sandMap *SandMap) print() {
 	xRange := sandMap.xMax - sandMap.xMin
 	yRange := sandMap.yMax - sandMap.yMin
@@ -92,12 +122,12 @@ func (sandMap *SandMap) print() {
 			if f, ok := sandMap.features[k]; ok {
 				switch f {
 				case FEATURE_ROCK:
-					s += "#"
+					s = s + fmt.Sprintf(RockColor, "#")
 				case FEATURE_SAND:
-					s += "o"
+					s = s + fmt.Sprintf(SandColor, "o")
 				}
 			} else {
-				s += "."
+				s = s + fmt.Sprintf(BackgroundColor, ".")
 			}
 		}
 		fmt.Println(s)
