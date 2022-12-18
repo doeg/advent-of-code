@@ -11,12 +11,13 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	sandMap := buildSandMap(input)
-	// partOne(sandMap)
-	partTwo(sandMap)
+	// partOne(input)
+	partTwo(input)
 }
 
-func partOne(sandMap *SandMap) {
+func partOne(input []string) {
+	sandMap := buildSandMap(input, false)
+
 	grains := 0
 	for {
 		// Simulates a grain of sand. If the grain comes to rest without falling
@@ -30,32 +31,26 @@ func partOne(sandMap *SandMap) {
 
 		grains++
 	}
-
 	sandMap.print()
 	fmt.Println(grains)
 }
 
-func partTwo(sandMap *SandMap) {
+func partTwo(input []string) {
+	sandMap := buildSandMap(input, true)
 	grains := 0
 	for {
-		// Simulates a grain of sand. If the grain comes to rest without falling
-		// into the abyss, the grain is marked on the sandmap as a feature and
-		// the function returns true. If the grain falls into the abyss,
-		// the function returns false.
-		atRest := simulateGrainWithFloor(sandMap)
+		atRest := simulateGrain(sandMap)
 		if !atRest {
 			break
 		}
 
 		grains++
 	}
+	// Need to account for placement of the last grain at the spout position.
+	grains++
 
 	sandMap.print()
 	fmt.Println(grains)
-}
-
-func simulateGrainWithFloor(sandMap *SandMap) bool {
-	return true
 }
 
 func simulateGrain(sandMap *SandMap) bool {
@@ -65,25 +60,41 @@ func simulateGrain(sandMap *SandMap) bool {
 
 	for {
 		switch {
-		// The sand fell into the abyss!
-		case y > sandMap.yMax:
+		// There is no infinite floor... the sand fell into the abyss!
+		case !sandMap.infiniteFloor && y > sandMap.yMax:
 			return false
+
+		// The sand falls at rest to the infinite floor
+		case sandMap.infiniteFloor && y == sandMap.yMax+1:
+			// Place the sand at rest above the floor
+			sandMap.addFeature(x, y, FEATURE_SAND)
+			// Draw floor as needed since... well, it's infinite.
+			sandMap.addFeature(x, y+1, FEATURE_ROCK)
+			return true
+
 		// A unit of sand always falls down one step if possible.
 		case sandMap.canMoveTo(x, y+1):
 			y++
 			continue
+
 		// If the tile immediately below is blocked (by rock or sand), the unit of sand
 		// attempts to instead move diagonally one step down and to the left.
 		case sandMap.canMoveTo(x-1, y+1):
 			y++
 			x--
 			continue
+
 		// If that tile is blocked, the unit of sand attempts to instead move
 		// diagonally one step down and to the right.
 		case sandMap.canMoveTo(x+1, y+1):
 			y++
 			x++
 			continue
+
+		// The sand can't move anywhere, and it is still at the initial spot position.
+		case x == 500 && y == 0:
+			return false
+
 		// The sand can't move anywhere; it is at rest.
 		default:
 			sandMap.addFeature(x, y, FEATURE_SAND)
@@ -93,15 +104,16 @@ func simulateGrain(sandMap *SandMap) bool {
 }
 
 type SandMap struct {
-	features map[string]FeatureType
-
-	xMin, xMax int
-	yMin, yMax int
+	infiniteFloor bool
+	features      map[string]FeatureType
+	xMin, xMax    int
+	yMin, yMax    int
 }
 
-func NewSandMap() *SandMap {
+func NewSandMap(infiniteFloor bool) *SandMap {
 	return &SandMap{
-		features: make(map[string]FeatureType),
+		features:      make(map[string]FeatureType),
+		infiniteFloor: infiniteFloor,
 	}
 }
 
@@ -149,8 +161,8 @@ func (sandMap *SandMap) print() {
 	}
 }
 
-func buildSandMap(input []string) *SandMap {
-	sandMap := NewSandMap()
+func buildSandMap(input []string, infiniteFloor bool) *SandMap {
+	sandMap := NewSandMap(infiniteFloor)
 
 	xMax := 0
 	xMin := math.MaxInt
