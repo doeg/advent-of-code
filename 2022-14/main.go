@@ -15,7 +15,42 @@ func main() {
 }
 
 func partOne(input []string) {
-	// sandMap := make(map[string]FeatureType)
+	sandMap := buildSandMap(input)
+	sandMap.print()
+}
+
+type SandMap struct {
+	features map[string]FeatureType
+
+	xMin, xMax int
+	yMin, yMax int
+}
+
+func NewSandMap() *SandMap {
+	return &SandMap{
+		features: make(map[string]FeatureType),
+	}
+}
+
+func (sandMap *SandMap) print() {
+	xRange := sandMap.xMax - sandMap.xMin
+	yRange := sandMap.yMax - sandMap.yMin
+
+	for y := 0; y <= yRange; y++ {
+		s := ""
+		for x := 0; x <= xRange; x++ {
+			k := fmt.Sprintf("%d,%d", x+sandMap.xMin, y+sandMap.yMin)
+			if _, ok := sandMap.features[k]; ok {
+				s += "#"
+			} else {
+				s += "."
+			}
+		}
+		fmt.Println(s)
+	}
+}
+
+func buildSandMap(input []string) *SandMap {
 	sandMap := NewSandMap()
 
 	xMax := 0
@@ -54,7 +89,6 @@ func partOne(input []string) {
 		// Iterate through the coordinates again, but this time
 		// "fill in" the rest of the rocks.
 		for i, curr := range coords {
-			fmt.Println(curr.toString())
 			sandMap.features[curr.toString()] = FEATURE_ROCK
 
 			// "Draw" rocks from the current point to the previous point.
@@ -62,7 +96,7 @@ func partOne(input []string) {
 				prev := coords[i-1]
 				switch {
 				case prev.x < curr.x:
-					for i := prev.x; i < prev.x; i++ {
+					for i := prev.x; i < curr.x; i++ {
 						sandMap.features[fmt.Sprintf("%d,%d", i, curr.y)] = FEATURE_ROCK
 					}
 				case curr.x < prev.x:
@@ -83,39 +117,7 @@ func partOne(input []string) {
 		}
 	}
 
-	sandMap.print()
-}
-
-type SandMap struct {
-	features map[string]FeatureType
-
-	xMin, xMax int
-	yMin, yMax int
-}
-
-func NewSandMap() *SandMap {
-	return &SandMap{
-		features: make(map[string]FeatureType),
-	}
-}
-
-func (sandMap *SandMap) print() {
-	xRange := sandMap.xMax - sandMap.xMin
-	yRange := sandMap.yMax - sandMap.yMin
-
-	fmt.Println(sandMap.features)
-	for y := 0; y <= yRange; y++ {
-		s := ""
-		for x := 0; x <= xRange; x++ {
-			k := fmt.Sprintf("%d,%d", x+sandMap.xMin, y+sandMap.yMin)
-			if _, ok := sandMap.features[k]; ok {
-				s += "#"
-			} else {
-				s += "."
-			}
-		}
-		fmt.Println(s)
-	}
+	return sandMap
 }
 
 type Coords struct {
