@@ -11,12 +11,12 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	partOne(input)
+	sandMap := buildSandMap(input)
+	partOne(sandMap)
+	// partTwo(input)
 }
 
-func partOne(input []string) {
-	sandMap := buildSandMap(input)
-
+func partOne(sandMap *SandMap) {
 	grains := 0
 	for {
 		// Simulates a grain of sand. If the grain comes to rest without falling
@@ -33,6 +33,10 @@ func partOne(input []string) {
 
 	sandMap.print()
 	fmt.Println(grains)
+}
+
+func partTwo(input []string) {
+	// sandMap := buildSandMap(input)
 }
 
 func simulateGrain(sandMap *SandMap, idx int) bool {
