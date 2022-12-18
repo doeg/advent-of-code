@@ -46,6 +46,11 @@ func partOne(input []string) {
 			}
 		}
 
+		sandMap.xMin = xMin
+		sandMap.xMax = xMax
+		sandMap.yMin = yMin
+		sandMap.yMax = yMax
+
 		// Iterate through the coordinates again, but this time
 		// "fill in" the rest of the rocks.
 		for i, curr := range coords {
@@ -77,11 +82,6 @@ func partOne(input []string) {
 			}
 		}
 	}
-
-	sandMap.xMin = xMin
-	sandMap.xMax = xMax
-	sandMap.yMin = yMin
-	sandMap.yMax = yMax
 
 	sandMap.print()
 }
