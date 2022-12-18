@@ -16,18 +16,13 @@ func main() {
 
 func partOne(input []string) {
 	sandMap := buildSandMap(input)
-	sandMap.print()
 
-	grains := simulate(sandMap)
-	sandMap.print()
-	fmt.Println(grains)
-}
-
-func simulate(sandMap *SandMap) int {
 	grains := 0
-
 	for {
-		// Simulate grains of sand until they start falling into the abyss.
+		// Simulates a grain of sand. If the grain comes to rest without falling
+		// into the abyss, the grain is marked on the sandmap as a feature and
+		// the function returns true. If the grain falls into the abyss,
+		// the function returns false.
 		atRest := simulateGrain(sandMap, grains)
 		if !atRest {
 			break
@@ -36,13 +31,10 @@ func simulate(sandMap *SandMap) int {
 		grains++
 	}
 
-	return grains
+	sandMap.print()
+	fmt.Println(grains)
 }
 
-// Simulates a grain of sand. If the grain comes to rest without falling
-// into the abyss, the grain is marked on the sandmap as a feature and
-// the function returns true. If the grain falls into the abyss,
-// the function returns false.
 func simulateGrain(sandMap *SandMap, idx int) bool {
 	// Set the initial position of the grain the position of the spout
 	x := 500
