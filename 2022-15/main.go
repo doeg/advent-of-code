@@ -15,6 +15,20 @@ func main() {
 }
 
 func partOne(input []string) {
+	sensorMap := buildSensorMap(input)
+	y := 2000000
+	if util.IsUsingExample() {
+		y = 10
+	}
+	result := sensorMap.calculateCoverage(y)
+	fmt.Println(result)
+}
+
+func partTwo(input []string) {
+
+}
+
+func buildSensorMap(input []string) *SensorMap {
 	sensorMap := NewSensorMap()
 
 	// Build the sensor map from the input
@@ -36,10 +50,7 @@ func partOne(input []string) {
 		sensorMap.addSensor(sensor)
 	}
 
-	// y := 10
-	y := 2000000
-	result := sensorMap.calculateCoverage(y)
-	fmt.Println(result)
+	return sensorMap
 }
 
 type SensorMap struct {
