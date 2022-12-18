@@ -17,6 +17,55 @@ func main() {
 func partOne(input []string) {
 	sandMap := buildSandMap(input)
 	sandMap.print()
+
+	grains := simulate(sandMap)
+	sandMap.print()
+	fmt.Println(grains)
+}
+
+func simulate(sandMap *SandMap) int {
+	grains := 0
+
+	for {
+		// Simulate grains of sand until they start falling into the abyss.
+		rest := simulateGrain(sandMap)
+		if !rest {
+			break
+		}
+
+		grains++
+	}
+
+	return grains
+}
+
+// Simulates a grain of sand. If the grain comes to rest without falling
+// into the abyss, the grain is marked on the sandmap as a feature and
+// the function returns true. If the grain falls into the abyss,
+// the function returns false.
+func simulateGrain(sandMap *SandMap) bool {
+	// Set to the position of the spout
+	x := 500
+	y := 0
+
+	for y <= sandMap.yMax {
+		fmt.Println(x, y)
+
+		// A unit of sand always falls down one step if possible.
+		dk := fmt.Sprintf("%d,%d", x, y+1)
+		fmt.Println(sandMap.features[dk])
+		if _, isBlocked := sandMap.features[dk]; isBlocked {
+			y++
+			continue
+		}
+
+		fmt.Println("Sand is resting at", dk)
+		sandMap.features[dk] = FEATURE_SAND
+		return true
+	}
+
+	// The sand fell into the abyss!
+	return false
 }
 
 type SandMap struct {
@@ -40,8 +89,13 @@ func (sandMap *SandMap) print() {
 		s := ""
 		for x := 0; x <= xRange; x++ {
 			k := fmt.Sprintf("%d,%d", x+sandMap.xMin, y+sandMap.yMin)
-			if _, ok := sandMap.features[k]; ok {
-				s += "#"
+			if f, ok := sandMap.features[k]; ok {
+				switch f {
+				case FEATURE_ROCK:
+					s += "#"
+				case FEATURE_SAND:
+					s += "o"
+				}
 			} else {
 				s += "."
 			}
