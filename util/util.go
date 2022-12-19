@@ -5,6 +5,11 @@ import (
 	"os"
 )
 
+func IsUsingExample() bool {
+	path := os.Args[1]
+	return path == "example.txt"
+}
+
 func ReadInput() []string {
 	// Assumes you're running the file with 'go run whatever.go example.txt'
 	path := os.Args[1]
