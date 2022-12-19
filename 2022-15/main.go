@@ -12,7 +12,7 @@ import (
 
 func main() {
 	input := util.ReadInput()
-	// partOne(input)
+	partOne(input)
 	partTwo(input)
 }
 
@@ -28,15 +28,13 @@ func partOne(input []string) {
 	fmt.Println(result)
 }
 
-type Coords struct {
-	x, y int
-}
-
 func partTwo(input []string) {
 	sensorMap := buildSensorMap(input)
 
 	m := 4000000
-	// m := 20
+	if util.IsUsingExample() {
+		m = 20
+	}
 
 	// debugGrid := make([][]string, m+1)
 	// for i := 0; i <= m; i++ {
