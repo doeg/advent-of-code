@@ -71,8 +71,6 @@ func partTwo(input []string) {
 		}
 	}
 
-	fmt.Println(len(candidates))
-
 	// Weed out candidates based on whether or not they fall
 	// within the range of any other sensor
 	for cs := range candidates {
