@@ -5,27 +5,137 @@ import (
 	"math"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/doeg/advent-of-code/util"
 )
 
 func main() {
 	input := util.ReadInput()
-	partOne(input)
+	// partOne(input)
+	partTwo(input)
 }
 
 func partOne(input []string) {
 	sensorMap := buildSensorMap(input)
+
 	y := 2000000
 	if util.IsUsingExample() {
 		y = 10
 	}
+
 	result := sensorMap.calculateCoverage(y)
 	fmt.Println(result)
 }
 
-func partTwo(input []string) {
+type Coords struct {
+	x, y int
+}
 
+func partTwo(input []string) {
+	sensorMap := buildSensorMap(input)
+
+	m := 4000000
+	// m := 20
+
+	// debugGrid := make([][]string, m+1)
+	// for i := 0; i <= m; i++ {
+	// 	debugGrid[i] = make([]string, m+1)
+	// 	for j := 0; j <= m; j++ {
+	// 		debugGrid[i][j] = "."
+	// 	}
+	// }
+
+	// A mapping from "x,y" coordinates to whether or not
+	// that position is a candidate for the missing beacon.
+	// This is based on the hint that the missing becon MUST exist
+	// _just_ outside any (and every!) sensor region.
+	//
+	// Further, all candidates must exist within the bounds of
+	// 0 <= n <= m
+	candidates := make(map[string]bool)
+
+	// So, we can proceed by moving along the edges of every sensor's range.
+	for _, sensor := range sensorMap.sensors {
+		// fmt.Println("Calculating edge for sensor #", s)
+
+		// The radius of a sensor is inclusive; the edge is (by definition!)
+		// just outside this radius.
+		outerRadius := sensor.radius + 1
+
+		for r := 0; r <= outerRadius; r++ {
+			x1 := sensor.x - r
+			x2 := sensor.x + r
+
+			dy := outerRadius - r
+			y1 := sensor.y + dy
+			y2 := sensor.y - dy
+
+			if x1 >= 0 && x1 <= m && y1 >= 0 && y1 <= m {
+				// debugGrid[y1][x1] = "o"
+				candidates[toKey(x1, y1)] = true
+			}
+			if x1 >= 0 && x1 <= m && y2 >= 0 && y2 <= m {
+				// debugGrid[y2][x1] = "o"
+				candidates[toKey(x1, y2)] = true
+			}
+			if x2 >= 0 && x2 <= m && y1 >= 0 && y1 <= m {
+				// debugGrid[y1][x2] = "o"
+				candidates[toKey(x2, y1)] = true
+			}
+			if x2 >= 0 && x2 <= m && y2 >= 0 && y2 <= m {
+				// debugGrid[y2][x2] = "o"
+				candidates[toKey(x2, y2)] = true
+			}
+		}
+	}
+
+	// for _, sensor := range sensorMap.sensors {
+	// 	// fmt.Printf("(%d,%d) R=%d\n", sensor.x, sensor.y, sensor.radius)
+	// 	if sensor.y >= 0 && sensor.y < len(debugGrid) && sensor.x >= 0 && sensor.x < len(debugGrid[0]) {
+	// 		debugGrid[sensor.y][sensor.x] = "S"
+	// 	}
+
+	// 	if sensor.beacon.y >= 0 && sensor.beacon.y < len(debugGrid) && sensor.beacon.x >= 0 && sensor.beacon.x < len(debugGrid[0]) {
+	// 		debugGrid[sensor.beacon.y][sensor.beacon.x] = "B"
+	// 	}
+	// }
+
+	// for _, line := range debugGrid {
+	// 	for _, cell := range line {
+	// 		fmt.Print(cell, " ")
+	// 	}
+	// 	fmt.Println()
+	// }
+	// fmt.Println()
+
+	// Weed out candidates based on whether or not they fall
+	// within the range of any other sensor
+
+	// i := 0
+	for cs := range candidates {
+		x, y := fromKey(cs)
+
+		// if i%1000 == 0 {
+		// 	fmt.Println("iteration", i)
+		// }
+
+		outOfEveryRange := true
+		for _, sensor := range sensorMap.sensors {
+			outOfRange := sensor.distance(x, y) > sensor.radius
+			if !outOfRange {
+				outOfEveryRange = false
+				break
+			}
+		}
+
+		if outOfEveryRange {
+			// fmt.Println("DONE", x, y)
+			fmt.Println(x*4000000 + y)
+			return
+		}
+		// i++
+	}
 }
 
 func buildSensorMap(input []string) *SensorMap {
@@ -56,9 +166,10 @@ func buildSensorMap(input []string) *SensorMap {
 type SensorMap struct {
 	sensors []*Sensor
 
-	// "Memoize" positions of the beacons, since we use that
+	// "Memoize" positions of the beacons + sensors, since we use that
 	// in the calculations.
 	beaconPositions map[string]bool
+	sensorPositions map[string]bool
 
 	// The min/max horizontal/vertical positions of the map,
 	// which is bounded by the furthest range across all sensors
@@ -69,12 +180,14 @@ type SensorMap struct {
 func NewSensorMap() *SensorMap {
 	return &SensorMap{
 		beaconPositions: make(map[string]bool),
+		sensorPositions: make(map[string]bool),
 		sensors:         make([]*Sensor, 0),
 	}
 }
 
 func (sensorMap *SensorMap) addSensor(sensor *Sensor) {
 	sensorMap.sensors = append(sensorMap.sensors, sensor)
+	sensorMap.sensorPositions[sensor.key] = true
 
 	// Recalculate the bounds of the map
 	sensorMap.xMin = minInt(sensorMap.xMin, sensor.x-sensor.radius)
@@ -97,6 +210,27 @@ func (sensorMap *SensorMap) calculateCoverage(y int) int {
 	return count
 }
 
+// Returns true if the position at x,y is covered by neither
+// a sensor nor a beacon, nor within a sensor's range
+func (sensorMap *SensorMap) isUncovered(x, y int) bool {
+	if sensorMap.hasSensorAt(x, y) {
+		return false
+	}
+
+	if sensorMap.hasBeaconAt(x, y) {
+		return false
+	}
+
+	for _, sensor := range sensorMap.sensors {
+		ds := sensor.distance(x, y)
+		if ds <= sensor.radius {
+			return false
+		}
+	}
+
+	return true
+}
+
 // calculateCoverageAt returns 1 if the position is covered by a sensor,
 // or actually contains a sensor or beacon. It returns 0 if the position
 // is not covered by anything.
@@ -117,6 +251,12 @@ func (sensorMap *SensorMap) calculateCoverageAt(x, y int) int {
 func (sensorMap *SensorMap) hasBeaconAt(x, y int) bool {
 	k := toKey(x, y)
 	_, ok := sensorMap.beaconPositions[k]
+	return ok
+}
+
+func (sensorMap *SensorMap) hasSensorAt(x, y int) bool {
+	k := toKey(x, y)
+	_, ok := sensorMap.sensorPositions[k]
 	return ok
 }
 
@@ -187,4 +327,15 @@ func maxInt(a, b int) int {
 		return b
 	}
 	return a
+}
+
+func abs(a int) int {
+	return int(math.Abs(float64(a)))
+}
+
+func fromKey(k string) (int, int) {
+	p := strings.Split(k, ",")
+	x, _ := strconv.Atoi(p[0])
+	y, _ := strconv.Atoi(p[1])
+	return x, y
 }
