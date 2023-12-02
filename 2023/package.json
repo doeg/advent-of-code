@@ -4,7 +4,7 @@
   "description": "Advent of Code 2023",
   "private": true,
   "scripts": {
-    "start": "ts-node",
+    "start": "tsx watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,6 +18,7 @@
     "@types/node": "^20.10.1",
     "prettier": "^3.1.0",
     "ts-node": "^10.9.1",
+    "tsx": "^4.6.2",
     "typescript": "^5.3.2"
   }
 }
