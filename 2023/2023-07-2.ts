@@ -11,6 +11,7 @@ enum HandType {
   FOUR_OF_A_KIND = 5,
   FIVE_OF_A_KIND = 6,
 }
+
 interface Hand {
   bid: number;
   cards: string[];
@@ -48,8 +49,8 @@ const getCountTuples = (countsByCard: {
     });
 };
 
-const getHandType = (hand: Hand): HandType => {
-  const countsByCard = getCountsByCard(hand.cards);
+const getHandType = (cards: string[]): HandType => {
+  const countsByCard = getCountsByCard(cards);
   const arr = getCountTuples(countsByCard);
 
   if (arr.length === 5) {
@@ -80,26 +81,70 @@ const getHandType = (hand: Hand): HandType => {
     return HandType.ONE_PAIR;
   }
 
-  //   if (arr.length === 4) {
-  //     if (arr[0][1] === 2) {
-  //       return HandType.ONE_PAIR;
-  //     }
-  //   }
-
-  //   if (arr.length === ) {
-  //   }
-  //   if (arr.length == 2 && arr[0][0] === 3 && arr[0][1] === 2) {
-  //     return HandType.FULL_HOUSE;
-  //   }
-
-  //   //   if (arr.length === 4) {
-  //   //     return HandType.ONE_PAIR;
-  //   //   }
-
-  //   //   console.log(countsByCard);
-  //   console.log(arr);
-  //   console.log(arr);
   throw Error("Could not figure out hand type");
+};
+
+const getJokerCount = (cards: string[]): number => {
+  return cards.reduce((acc, c) => {
+    return c === "J" ? acc + 1 : acc;
+  }, 0);
+};
+
+const getJokerModifiedHandCount = (cards: string[]): HandType => {
+  const handType = getHandType(cards);
+  const jokerCount = getJokerCount(cards);
+
+  const cardsWithoutJokers = cards.filter((c) => c !== "J");
+  const cbcwj = getCountsByCard(cardsWithoutJokers);
+  const arr = getCountTuples(cbcwj);
+
+  // No mods needed
+  if (jokerCount === 0) {
+    return handType;
+  }
+
+  // Naturally...!
+  if (jokerCount === 5) {
+    return HandType.FIVE_OF_A_KIND;
+  }
+
+  // Four jokers + any other card is 5 of a kind
+  if (jokerCount === 4) {
+    return HandType.FIVE_OF_A_KIND;
+  }
+
+  if (jokerCount === 3) {
+    if (arr[0][1] === 2) return HandType.FIVE_OF_A_KIND;
+    if (arr[0][1] === 1) return HandType.FOUR_OF_A_KIND;
+
+    // We skip full house because if there were two other non-J cards
+    // of the same kind, it would be five of a kind since that's
+    // higher than a full house.
+    return HandType.THREE_OF_A_KIND;
+  }
+
+  if (jokerCount === 2) {
+    if (arr[0][1] === 3) return HandType.FIVE_OF_A_KIND;
+    if (arr[0][1] === 2) return HandType.FOUR_OF_A_KIND;
+    if (arr[0][1] === 2 && arr[1][1] === 1) return HandType.FULL_HOUSE;
+    if (arr[0][1] === 1) return HandType.THREE_OF_A_KIND;
+
+    // We skip TWO_PAIR because if there were another non-joker pair,
+    // it would be four of a kind.
+    return HandType.ONE_PAIR;
+  }
+
+  if (jokerCount === 1) {
+    if (arr[0][1] === 4) return HandType.FIVE_OF_A_KIND;
+    if (arr[0][1] === 3) return HandType.FOUR_OF_A_KIND;
+    if (arr[0][1] === 2 && arr[1][1] === 2) return HandType.FULL_HOUSE;
+    if (arr[0][1] === 2) return HandType.THREE_OF_A_KIND;
+    // if (arr[0][1] === 2 && arr[]) return HandType.THREE_OF_A_KIND;
+    return HandType.ONE_PAIR;
+    // if (arr[0][1] === 2) return HandType.THREE_OF_A_KIND;
+  }
+
+  return 0;
 };
 
 const hands: Hand[] = input
@@ -110,18 +155,43 @@ const hands: Hand[] = input
     const cards = cardString.split("");
     const bid = parseInt(bidString);
     const cardsAndBid = { bid, cards };
-    const handType = getHandType(cardsAndBid);
+    const handType = getJokerModifiedHandCount(cards);
+
+    // if (getJokerCount(cards) > 0) {
+    //   console.log();
+    //   console.log(getJokerCount(cards), cards);
+    //   console.log(
+    //     "hand type",
+    //     handTypeStrings[getHandType(cards)],
+    //     getHandType(cards)
+    //   );
+    //   console.log("modified hand type", handTypeStrings[handType], handType);
+    //   console.log(
+    //     "hand type???",
+    //     getHandType(cards) + getJokerCount(cards) + 1
+    //   );
+    // }
+
+    // console.log({})
+    // console.log("with joker boost\t", handTypeStrings[handType]);
+
+    // const jokerCount = cards.reduce((acc, c) => {
+    //   return c === "J" ? acc + 1 : acc;
+    // }, 0);
+    // const cardsWithoutJokers = cards.filter((c) => c !== "J");
+    // const handTypeWithoutJokers = getHandType(cardsWithoutJokers);
+
+    // const highestHandType = Math.max(
+    //   handType,
+    //   handTypeWithoutJokers + jokerCount
+    // );
 
     const countsByCard = getCountsByCard(cards);
     const arr = getCountTuples(countsByCard);
 
-    // const rank = handType + 1;
-    // const winnings = rank * bid;
-    // sum += winnings;
-
     const hand: Hand = {
       ...cardsAndBid,
-      handType,
+      handType: handType,
       handTypeString: handTypeStrings[handType],
       arr,
       //   rank,
@@ -147,7 +217,7 @@ const getCardValue = (card: string): number => {
   if (card === "K") return 100009;
   if (card === "Q") return 100008;
   if (card === "K") return 100007;
-  if (card === "J") return 100006;
+  if (card === "J") return 1;
   if (card === "T") return 100005;
   return card.charCodeAt(0);
 };
@@ -188,6 +258,7 @@ const flatRankings = Object.values(rankings).reduce((acc, r) => {
 
 const sum = flatRankings.reduce((acc, r, idx) => {
   const rank = idx + 1;
+  // FIXM
   //   console.log(rank, r.bid, r.cards, r.handTypeString);
   return acc + r.bid * rank;
 }, 0);
