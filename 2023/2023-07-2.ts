@@ -139,9 +139,7 @@ const getJokerModifiedHandCount = (cards: string[]): HandType => {
     if (arr[0][1] === 3) return HandType.FOUR_OF_A_KIND;
     if (arr[0][1] === 2 && arr[1][1] === 2) return HandType.FULL_HOUSE;
     if (arr[0][1] === 2) return HandType.THREE_OF_A_KIND;
-    // if (arr[0][1] === 2 && arr[]) return HandType.THREE_OF_A_KIND;
     return HandType.ONE_PAIR;
-    // if (arr[0][1] === 2) return HandType.THREE_OF_A_KIND;
   }
 
   return 0;
@@ -157,35 +155,6 @@ const hands: Hand[] = input
     const cardsAndBid = { bid, cards };
     const handType = getJokerModifiedHandCount(cards);
 
-    // if (getJokerCount(cards) > 0) {
-    //   console.log();
-    //   console.log(getJokerCount(cards), cards);
-    //   console.log(
-    //     "hand type",
-    //     handTypeStrings[getHandType(cards)],
-    //     getHandType(cards)
-    //   );
-    //   console.log("modified hand type", handTypeStrings[handType], handType);
-    //   console.log(
-    //     "hand type???",
-    //     getHandType(cards) + getJokerCount(cards) + 1
-    //   );
-    // }
-
-    // console.log({})
-    // console.log("with joker boost\t", handTypeStrings[handType]);
-
-    // const jokerCount = cards.reduce((acc, c) => {
-    //   return c === "J" ? acc + 1 : acc;
-    // }, 0);
-    // const cardsWithoutJokers = cards.filter((c) => c !== "J");
-    // const handTypeWithoutJokers = getHandType(cardsWithoutJokers);
-
-    // const highestHandType = Math.max(
-    //   handType,
-    //   handTypeWithoutJokers + jokerCount
-    // );
-
     const countsByCard = getCountsByCard(cards);
     const arr = getCountTuples(countsByCard);
 
@@ -194,8 +163,6 @@ const hands: Hand[] = input
       handType: handType,
       handTypeString: handTypeStrings[handType],
       arr,
-      //   rank,
-      //   winnings,
     };
     return hand;
   });
@@ -224,7 +191,6 @@ const getCardValue = (card: string): number => {
 
 for (let i = 0; i < hands.length; i++) {
   const hand = hands[i];
-  const firstCard = hand.cards[0];
 
   let arr = rankings[hand.handType as HandType];
   arr.push(hand);
@@ -237,12 +203,7 @@ for (let i = 0; i < hands.length; i++) {
     let diff = 0;
     let i = 0;
     while (diff === 0) {
-      const aCard = a.cards[i];
-      const bCard = b.cards[i];
-      const aCardVal = getCardValue(a.cards[i]);
-      const bCardVal = getCardValue(b.cards[i]);
       diff = getCardValue(a.cards[i]) - getCardValue(b.cards[i]);
-      //   console.log("comparing", i, aCard, aCardVal, bCard, bCardVal, diff);
       i++;
     }
 
@@ -258,8 +219,6 @@ const flatRankings = Object.values(rankings).reduce((acc, r) => {
 
 const sum = flatRankings.reduce((acc, r, idx) => {
   const rank = idx + 1;
-  // FIXM
-  //   console.log(rank, r.bid, r.cards, r.handTypeString);
   return acc + r.bid * rank;
 }, 0);
 
