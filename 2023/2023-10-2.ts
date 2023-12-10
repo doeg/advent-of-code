@@ -11,7 +11,7 @@ interface GraphNode {
   empty: boolean;
 
   inside: boolean;
-  checked: boolean;
+  fillChecked: boolean;
 }
 
 // Just parse the input into a grid of strings.
@@ -66,7 +66,7 @@ const buildNodeGrid = (): { startNode: GraphNode; nodeGrid: GraphNode[][] } => {
 
         // Flood fill
         inside: false,
-        checked: false,
+        fillChecked: false,
       };
 
       nodeGrid[row][col] = graphNode;
@@ -89,9 +89,9 @@ const printGrid = (grid: GraphNode[][]) => {
         .map(({ d, ...n }) => {
           if (n.visited) return chalk.green(d);
           if (n.inside) return chalk.bgCyan(d);
-          if (n.checked) return chalk.red(d);
+          if (n.fillChecked) return chalk.red(d);
 
-          return chalk.grey(d);
+          return chalk.bgCyan(d);
         })
         .join("")
     );
@@ -104,7 +104,7 @@ const getNode = (
   col: number
 ): GraphNode | null => {
   if (row < 0) return null;
-  if (row > nodeGrid.length) return null;
+  if (row >= nodeGrid.length) return null;
   if (col < 0) return null;
   if (col > nodeGrid[row].length) return null;
 
@@ -234,242 +234,123 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
   console.log("DONE", counter);
 };
 
-// ******************************************************
-// FLOOD
-// FILL
-// STUFF
-// ******************************************************
+// Start a flood fill from the given node.
+const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
+  const queue: GraphNode[] = [startNode];
+  const region: GraphNode[] = [];
 
-const NORTH_BOUNDS = ["-", "L", "F", "S"];
-const EAST_BOUNDS = ["|", "J", "L", "S"];
-const SOUTH_BOUNDS = ["-", "L", "F", "S"];
-const WEST_BOUNDS = ["|", "J", "L", "S"];
+  console.log(
+    "Starting flood from node",
+    startNode.row,
+    startNode.col,
+    startNode.d
+  );
 
-// const NORTH_BOUNDS = ["-", "F"];
-// const EAST_BOUNDS = ["|", "J"];
-// const SOUTH_BOUNDS = ["-", "L"];
-// const WEST_BOUNDS = ["|", ;
+  let areAnyUnbounded = false;
 
-//
-// NORTH
-//
-const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
-  let row = node.row;
+  while (queue.length > 0) {
+    const node = queue.pop();
+    if (!node) throw Error("invalid queue");
 
-  while (row >= 0) {
-    const checkingNode = nodeGrid[row][node.col];
-    if (checkingNode.visited && hasCharacter(checkingNode, NORTH_BOUNDS)) {
-      return true;
+    // if (node.row === 6 && node.col === 2) debugger;
+
+    // Don't process nodes that have already been processed as part of this region fill.
+    if (node.fillChecked) continue;
+
+    // if (node.visited) continue;
+
+    node.fillChecked = true;
+
+    // Push non-path nodes onto the region
+    if (!node.visited) region.push(node);
+
+    const northNode = getNode(nodeGrid, node.row - 1, node.col);
+    const eastNode = getNode(nodeGrid, node.row, node.col + 1);
+    const southNode = getNode(nodeGrid, node.row + 1, node.col);
+    const westNode = getNode(nodeGrid, node.row, node.col - 1);
+
+    areAnyUnbounded = [northNode, eastNode, southNode, westNode].every(
+      (n) => !!n
+    );
+
+    const boundedNorth = !!northNode && hasCharacter(northNode, ["-"]);
+    const boundedEast = !!eastNode && hasCharacter(eastNode, ["|"]);
+    const boundedSouth = !!southNode && hasCharacter(southNode, ["-"]);
+    const boundedWest = !!westNode && hasCharacter(westNode, ["|"]);
+
+    const push = (n: GraphNode) => {
+      // if (n.row === 6 && n.col === 2) {
+      //   onconsole.log(node);
+      //   debugger;
+      // }
+      queue.push(n);
+    };
+
+    if (!node.visited) {
+      if (northNode && !boundedNorth) push(northNode);
+      if (eastNode && !boundedEast) push(eastNode);
+      if (southNode && !boundedSouth) push(southNode);
+      if (westNode && !boundedWest) push(westNode);
+    } else {
+      // If we're on a path, allow th4e flood to move through
+      // the pipes
+      if (node.s === "|") {
+        if (northNode && !boundedNorth) push(northNode);
+        if (southNode && !boundedSouth) push(southNode);
+      }
+
+      if (node.s === "-") {
+        if (eastNode && !boundedEast) push(eastNode);
+        if (westNode && !boundedWest) push(westNode);
+      }
+
+      if (node.s === "L") {
+        if (northNode && !boundedNorth) push(northNode);
+        if (eastNode && !boundedEast) push(eastNode);
+      }
+
+      if (node.s === "J") {
+        if (northNode && !boundedNorth) push(northNode);
+        if (westNode && !boundedWest) push(westNode);
+      }
+
+      if (node.s === "7") {
+        if (southNode && !boundedSouth) push(southNode);
+        if (westNode && !boundedWest) push(westNode);
+      }
+
+      if (node.s === "F") {
+        if (southNode && !boundedSouth) push(southNode);
+        if (eastNode && !boundedEast) push(eastNode);
+      }
     }
-
-    row--;
   }
 
-  return false;
-};
-
-const isContiguousNorth = (
-  nodeGrid: GraphNode[][],
-  node: GraphNode
-): boolean => {
-  let row = node.row;
-
-  while (row >= 0) {
-    const checkingNode = nodeGrid[row][node.col];
-    if (checkingNode.checked && !checkingNode.inside) return false;
-    if (checkingNode.visited && hasCharacter(checkingNode, NORTH_BOUNDS)) {
-      return true;
-    }
-
-    row--;
-  }
-
-  return false;
-};
-
-//
-// EAST
-//
-const isBoundedEast = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
-  let col = node.col;
-  while (col < nodeGrid[node.row].length) {
-    const checkingNode = nodeGrid[node.row][col];
-    if (checkingNode.visited && hasCharacter(checkingNode, EAST_BOUNDS)) {
-      return true;
-    }
-
-    col++;
-  }
-  return false;
-};
-
-const isContiguousEast = (
-  nodeGrid: GraphNode[][],
-  node: GraphNode
-): boolean => {
-  let col = node.col;
-  while (col < nodeGrid[node.row].length) {
-    const checkingNode = nodeGrid[node.row][col];
-    if (checkingNode.checked && !checkingNode.inside) return false;
-    if (checkingNode.visited && hasCharacter(checkingNode, EAST_BOUNDS)) {
-      return true;
-    }
-
-    col++;
-  }
-  return false;
-};
-
-//
-// SOUTH
-//
-const isBoundedSouth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
-  let row = node.row;
-
-  while (row < nodeGrid.length) {
-    const checkingNode = nodeGrid[row][node.col];
-    if (checkingNode.visited && hasCharacter(checkingNode, SOUTH_BOUNDS)) {
-      return true;
-    }
-
-    row++;
-  }
-
-  return false;
-};
-
-const isContiguousSouth = (
-  nodeGrid: GraphNode[][],
-  node: GraphNode
-): boolean => {
-  let row = node.row;
-
-  while (row < nodeGrid.length) {
-    const checkingNode = nodeGrid[row][node.col];
-    if (checkingNode.checked && !checkingNode.inside) return false;
-    if (checkingNode.visited && hasCharacter(checkingNode, SOUTH_BOUNDS)) {
-      return true;
-    }
-
-    row++;
-  }
-
-  return false;
-};
-
-//
-// WEST
-//
-const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
-  let col = node.col;
-  while (col >= 0) {
-    const checkingNode = nodeGrid[node.row][col];
-    if (checkingNode.visited && hasCharacter(checkingNode, WEST_BOUNDS)) {
-      return true;
-    }
-
-    col--;
-  }
-
-  return false;
-};
-
-const isContiguousWest = (
-  nodeGrid: GraphNode[][],
-  node: GraphNode
-): boolean => {
-  let col = node.col;
-  while (col >= 0) {
-    const checkingNode = nodeGrid[node.row][col];
-
-    // The node to the west is already marked as not inside.
-    // A noded directly connected to a node not inside the loop is also not inside the loop.
-    if (checkingNode.checked && !checkingNode.inside) return false;
-
-    if (checkingNode.visited && hasCharacter(checkingNode, WEST_BOUNDS)) {
-      return true;
-    }
-
-    col--;
-  }
-
-  // We've exceeded the bounds of the grid.
-  return false;
-};
-
-const isContiguousDiagonal = (
-  nodeGrid: GraphNode[][],
-  node: GraphNode,
-  row: number,
-  col: number
-): boolean => {
-  if (row < 0) return false;
-  if (row >= nodeGrid.length) return false;
-  if (col < 0) return false;
-  if (col >= nodeGrid[row].length) return false;
-
-  const check = nodeGrid[row][col];
-  if (check.checked && !check.inside) return false;
-  return true;
+  region.forEach((n) => {
+    if (!areAnyUnbounded) n.inside === true;
+  });
 };
 
 const fillGrid = (nodeGrid: GraphNode[][]) => {
   for (let row = 0; row < nodeGrid.length; row++) {
     for (let col = 0; col < nodeGrid[row].length; col++) {
+      // TODO: Remove
+      // For debugging, only start the flood fill at the top left corner.
+      // if (row > 0 || col > 0) return;
+
+      // Pick a node from which to start the flood fill.
       const node = nodeGrid[row][col];
 
-      // Skip nodes that are part of the loop
+      // If the node is part of a path, do not bother doing a flood fill
+      // starting at this position. This may or may not be accurate...?
       if (node.visited) continue;
 
-      const boundedNorth = isBoundedNorth(nodeGrid, node);
-      const boundedEast = isBoundedEast(nodeGrid, node);
-      const boundedSouth = isBoundedSouth(nodeGrid, node);
-      const boundedWest = isBoundedWest(nodeGrid, node);
+      // If we've already processed this node as part of a previous flood fill, continue.
+      if (node.fillChecked) continue;
 
-      node.checked = true;
-      node.inside = boundedNorth && boundedEast && boundedSouth && boundedWest;
+      floodFromNode(nodeGrid, node);
     }
   }
-
-  // Print interim between fill passes
-  printGrid(nodeGrid);
-
-  const newGrid: GraphNode[][] = [];
-
-  let insideCount = 0;
-  for (let row = 0; row < nodeGrid.length; row++) {
-    newGrid[row] = [];
-
-    for (let col = 0; col < nodeGrid[row].length; col++) {
-      const node = nodeGrid[row][col];
-      if (node.visited) {
-        newGrid[row][col] = {
-          ...node,
-          inside: true,
-        };
-        continue;
-      }
-
-      const north = isContiguousNorth(nodeGrid, node);
-      const east = isContiguousEast(nodeGrid, node);
-      const south = isContiguousSouth(nodeGrid, node);
-      const west = isContiguousWest(nodeGrid, node);
-
-      const isContiguous = north && east && south && west;
-
-      newGrid[row][col] = {
-        ...node,
-        inside: isContiguous,
-      };
-
-      if (isContiguous) {
-        insideCount++;
-      }
-    }
-  }
-
-  printGrid(newGrid);
-  console.log(insideCount);
 };
 
 // ******************************************************
@@ -480,4 +361,6 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
 const { startNode, nodeGrid } = buildNodeGrid();
 connectGridInLoop(nodeGrid, startNode);
 printGrid(nodeGrid);
+
 fillGrid(nodeGrid);
+printGrid(nodeGrid);
