@@ -14,7 +14,7 @@ interface GraphNode {
 // Just parse the input into a grid of strings.
 // We can do the graph-building path separately.
 const parseInput = (): string[][] => {
-  const input = getInput(__filename, true);
+  const input = getInput(__filename, false);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -93,7 +93,6 @@ const getNode = (
   row: number,
   col: number
 ): GraphNode | null => {
-  console.log("Getting node at ", row, col);
   if (row < 0) return null;
   if (row > nodeGrid.length) return null;
   if (col < 0) return null;
@@ -102,10 +101,10 @@ const getNode = (
   return nodeGrid[row][col];
 };
 
-const NORTH_CONNECTORS = ["|", "7", "F"];
-const EAST_CONNECTORS = ["J", "-"];
-const SOUTH_CONNECTORS = ["|", "L", "J"];
-const WEST_CONNECTORS = ["L", "-"];
+const NORTH_CONNECTORS = ["|", "7", "F", "S"];
+const EAST_CONNECTORS = ["J", "-", "7", "S"];
+const SOUTH_CONNECTORS = ["|", "L", "J", "S"];
+const WEST_CONNECTORS = ["L", "-", "F", "S"];
 
 const hasCharacter = (node: GraphNode, characters: string[]): boolean => {
   return characters.indexOf(node.s) >= 0;
@@ -152,40 +151,61 @@ const getWestNode = (
   return westNode && hasCharacter(westNode, WEST_CONNECTORS) ? westNode : null;
 };
 
-const connectStartNode = (
+const connectNode = (
   nodeGrid: GraphNode[][],
   row: number,
   col: number
 ): void => {
   const node = nodeGrid[row][col];
+  if (node.visited) return;
+
+  // console.log("\n\n\n=======");
+  // console.log("processing node");
+  // console.log(node);
+  // console.log("=======");
 
   // Check north
-  const northNode = getNorthNode(nodeGrid, row, col);
-  if (northNode) {
-    node.neighbors.push(northNode);
+  if (hasCharacter(node, ["S", "|", "L", "J"])) {
+    const northNode = getNorthNode(nodeGrid, row, col);
+    // console.log("checkingn north", northNode);
+    if (northNode) {
+      node.neighbors.push(northNode);
+    }
   }
 
   // Check east
-  const eastNode = getEastNode(nodeGrid, row, col);
-  if (eastNode) {
-    node.neighbors.push(eastNode);
+  if (hasCharacter(node, ["S", "-", "L", "F"])) {
+    const eastNode = getEastNode(nodeGrid, row, col);
+    // console.log("checking east", eastNode);
+    if (eastNode) {
+      node.neighbors.push(eastNode);
+    }
   }
 
   // Check south
-  const southNode = getSouthNode(nodeGrid, row, col);
-  if (southNode) {
-    node.neighbors.push(southNode);
+  if (hasCharacter(node, ["S", "|", "7", "F"])) {
+    const southNode = getSouthNode(nodeGrid, row, col);
+    // console.log("checking south", southNode);
+    if (southNode) {
+      node.neighbors.push(southNode);
+    }
   }
 
   // Check west
-  const westNode = getWestNode(nodeGrid, row, col);
-  if (westNode) {
-    node.neighbors.push(westNode);
+  if (hasCharacter(node, ["S", "-", "J", "7"])) {
+    const westNode = getWestNode(nodeGrid, row, col);
+    // console.log("checking west", westNode);
+    if (westNode) {
+      node.neighbors.push(westNode);
+    }
   }
 
   if (node.neighbors.length !== 2) {
-    console.log(node.neighbors.length);
-    throw Error("weird number of nodes on start node");
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!");
+    console.log(node);
+    printGrid(nodeGrid);
+    console.log("neighbor count", node.neighbors.length);
+    throw Error("weird number of nodes for node");
   }
 };
 
@@ -195,26 +215,41 @@ const connectStartNode = (
 // Note that every node is connected to at most two other nodes.
 // The connected nodes are suggested by the shape of the pipe, except for the
 // starting node "S" which can connect to any of N/E/S/W.
-const connectGrid = (nodeGrid: GraphNode[][], row: number, col: number) => {
+const connectGrid = (
+  nodeGrid: GraphNode[][],
+  row: number,
+  col: number,
+  counter: number
+) => {
   const node = nodeGrid[row][col];
-
-  switch (node.s) {
-    case "S":
-      // The start node is special because its shape does not describe
-      // which other nodes it is connected to.
-      connectStartNode(nodeGrid, row, col);
-      break;
-    default:
-      console.log("unhandled node", node);
-      break;
+  if (node.s === "S" && node.visited) {
+    console.log("DONE");
+    console.log("COUNTER", counter);
   }
 
-  console.log(row, col, node.d, node.neighbors.length);
+  connectNode(nodeGrid, row, col);
+  counter++;
+  node.visited = true;
 
-  node.neighbors.forEach((node) => connectGrid(nodeGrid, node.row, node.col));
+  // printGrid(nodeGrid);
+  // console.log();
+
+  if (node.neighbors.every((n) => n.visited)) {
+    printGrid(nodeGrid);
+    console.log();
+    console.log("DONE");
+    console.log(counter - 1);
+    return;
+  }
+
+  node.neighbors.forEach((node) => {
+    if (!node.visited) {
+      setTimeout(() => {
+        connectGrid(nodeGrid, node.row, node.col, counter);
+      }, 0);
+    }
+  });
 };
 
 const { startNode, nodeGrid } = buildNodeGrid();
-printGrid(nodeGrid);
-connectGrid(nodeGrid, startNode.row, startNode.col);
-printGrid(nodeGrid);
+connectGrid(nodeGrid, startNode.row, startNode.col, 0);
