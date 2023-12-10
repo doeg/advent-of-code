@@ -14,7 +14,7 @@ interface GraphNode {
 // Just parse the input into a grid of strings.
 // We can do the graph-building path separately.
 const parseInput = (): string[][] => {
-  const input = getInput(__filename, false);
+  const input = getInput(__filename, true);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -241,14 +241,13 @@ const connectGrid = (
     console.log(counter - 1);
     return;
   }
-
-  node.neighbors.forEach((node) => {
-    if (!node.visited) {
-      setTimeout(() => {
+  setTimeout(() => {
+    node.neighbors.forEach((node) => {
+      if (!node.visited) {
         connectGrid(nodeGrid, node.row, node.col, counter);
-      }, 0);
-    }
-  });
+      }
+    });
+  }, 0);
 };
 
 const { startNode, nodeGrid } = buildNodeGrid();
