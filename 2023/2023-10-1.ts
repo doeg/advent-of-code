@@ -17,7 +17,7 @@ interface GraphNode {
 // Just parse the input into a grid of strings.
 // We can do the graph-building path separately.
 const parseInput = (): string[][] => {
-  const input = getInput(__filename, true);
+  const input = getInput(__filename, false);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -167,7 +167,7 @@ const connectNode = (
   col: number
 ): void => {
   const node = nodeGrid[row][col];
-  if (node.visited) return;
+  // if (node.visited) return;
 
   // console.log("\n\n\n=======");
   // console.log("processing node");
@@ -219,69 +219,39 @@ const connectNode = (
   }
 };
 
-// For the node at `nodeGrid[row][col]`, populate its `neighbors` array
-// with adjacent nodes.
-//
-// Note that every node is connected to at most two other nodes.
-// The connected nodes are suggested by the shape of the pipe, except for the
-// starting node "S" which can connect to any of N/E/S/W.
-const connectGrid = (
-  nodeGrid: GraphNode[][],
-  row: number,
-  col: number,
-  counter: number
-) => {
-  const node = nodeGrid[row][col];
-  if (node.s === "S" && node.visited) {
-    console.log("DONE");
-    console.log("COUNTER", counter);
-  }
+const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
+  let counter = 0;
+  let stack: GraphNode[] = [];
+  stack.push(startNode);
 
-  connectNode(nodeGrid, row, col);
-  counter++;
-  node.visited = true;
+  while (stack.length > 0) {
+    const node = stack.pop();
 
-  // printGrid(nodeGrid);
-  // console.log();
+    if (!node) throw Error("bad pop");
 
-  if (node.neighbors.every((n) => n.visited)) {
-    printGrid(nodeGrid);
-    console.log();
-    console.log("CONNECTED");
-    // The -1 is to exclude the "S".
-    // Since we don't visit already visited nodes, we by definition
-    // only traverse half of the graph, since it's (effectively) a directed graph.
-    console.log(counter - 1);
-    return;
-  }
-  setTimeout(() => {
-    node.neighbors.forEach((node) => {
-      if (!node.visited) {
-        connectGrid(nodeGrid, node.row, node.col, counter);
-      }
-    });
-  }, 0);
-};
-
-const fillGrid = (nodeGrid: GraphNode[][]) => {
-  for (let row = 0; row < nodeGrid.length; row++) {
-    for (let col = 0; col < nodeGrid[row].length; col++) {
-      const node = nodeGrid[row][col];
-
-      // Skip non-empty nodes. This includes nodes that are part of the loop.
-      if (!node.empty) continue;
-
-      node.checked = true;
+    if (!node.visited) {
+      node.visited = true;
+      connectNode(nodeGrid, node.row, node.col);
+      counter++;
+      node.neighbors.forEach((n) => stack.push(n));
+      // [
+      //   getNorthNode(nodeGrid, node.row, node.col),
+      //   getEastNode(nodeGrid, node.row, node.col),
+      //   getSouthNode(nodeGrid, node.row, node.col),
+      //   getWestNode(nodeGrid, node.row, node.col),
+      // ].forEach((n) => {
+      //   if (n) {
+      //     stack.push(n);
+      //   }
+      // });
     }
   }
+
+  console.log("DONE", counter);
 };
 
-// const fillGrid = (nodeGrid: GraphNode[][], row: number, col: number) => {
-//   const node = nodeGrid[row][col];
-// };
-
 const { startNode, nodeGrid } = buildNodeGrid();
-connectGrid(nodeGrid, startNode.row, startNode.col, 0);
+// connectGrid(nodeGrid, startNode.row, startNode.col, 0);
 
-// // Start filling at 1,1 since 0,0 will definitely not be enclosed.
-// fillGrid(nodeGrid, 1, 1);
+connectGridInLoop(nodeGrid, startNode);
+printGrid(nodeGrid);
