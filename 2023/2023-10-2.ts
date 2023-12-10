@@ -17,7 +17,7 @@ interface GraphNode {
 // Just parse the input into a grid of strings.
 // We can do the graph-building path separately.
 const parseInput = (): string[][] => {
-  const input = getInput(__filename, false);
+  const input = getInput(__filename, true);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -59,6 +59,7 @@ const buildNodeGrid = (): { startNode: GraphNode; nodeGrid: GraphNode[][] } => {
         row,
         col,
         s,
+        // @ts-ignore
         d: CHAR_TO_UNICODE[s],
         empty: s === ".",
         neighbors: [],
@@ -222,8 +223,6 @@ const connectNode = (
   }
 };
 
-let connectedGrid;
-
 // For the node at `nodeGrid[row][col]`, populate its `neighbors` array
 // with adjacent nodes.
 //
@@ -231,7 +230,7 @@ let connectedGrid;
 // The connected nodes are suggested by the shape of the pipe, except for the
 // starting node "S" which can connect to any of N/E/S/W.
 const connectGrid = (
-  //   nodeGrid: GraphNode[][],
+  nodeGrid: GraphNode[][],
   row: number,
   col: number,
   counter: number
@@ -250,7 +249,7 @@ const connectGrid = (
   // console.log();
 
   if (node.neighbors.every((n) => n.visited)) {
-    printGrid(connectedGrid);
+    printGrid(nodeGrid);
     console.log();
     console.log("CONNECTED");
     // The -1 is to exclude the "S".
@@ -259,13 +258,13 @@ const connectGrid = (
     console.log(counter - 1);
     return;
   }
-  setTimeout(() => {
-    node.neighbors.forEach((node) => {
-      if (!node.visited) {
-        connectGrid(node.row, node.col, counter);
-      }
-    });
-  }, 0);
+  //   setTimeout(() => {
+  node.neighbors.forEach((node) => {
+    if (!node.visited) {
+      connectGrid(nodeGrid, node.row, node.col, counter);
+    }
+  });
+  //   }, 0);
 };
 
 const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
@@ -327,13 +326,6 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
     for (let col = 0; col < nodeGrid[row].length; col++) {
       const node = nodeGrid[row][col];
 
-      //   if (row === 0 && col === 0) {
-      //     debugger;
-      //   }
-
-      // Skip non-empty nodes. This includes nodes that are part of the loop.
-      //   if (!node.empty) continue;
-
       // Skip nodes that are part of the loop
       if (node.visited) continue;
 
@@ -343,8 +335,6 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
       const east = isBoundedEast(nodeGrid, node);
       const south = isBoundedSouth(nodeGrid, node);
       const west = isBoundedWest(nodeGrid, node);
-
-      //   console.log(node, north, east, south, west);
 
       if (!north || !east || !south || !west) continue;
 
@@ -359,9 +349,8 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
 // };
 
 const { startNode, nodeGrid } = buildNodeGrid();
-connectedGrid = nodeGrid;
-connectGrid(startNode.row, startNode.col, 0);
-printGrid(connectedGrid);
+connectGrid(nodeGrid, startNode.row, startNode.col, 0);
+
 // // Start filling at 1,1 since 0,0 will definitely not be enclosed.
 // fillGrid(nodeGrid, 1, 1);
 
