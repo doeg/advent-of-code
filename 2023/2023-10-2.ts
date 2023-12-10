@@ -240,12 +240,17 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
 // STUFF
 // ******************************************************
 
+const NORTH_BOUNDS = ["-", "L", "F", "S"];
+const EAST_BOUNDS = ["|", "J", "L", "S"];
+const SOUTH_BOUNDS = ["-", "L", "F", "S"];
+const WEST_BOUNDS = ["|", "J", "L", "S"];
+
 const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
   let row = node.row;
 
   while (row >= 0) {
     const checkingNode = nodeGrid[row][node.col];
-    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "J", "L"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, NORTH_BOUNDS)) {
       return true;
     }
 
@@ -259,7 +264,7 @@ const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
   let col = node.col;
   while (col >= 0) {
     const checkingNode = nodeGrid[node.row][col];
-    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "F", "7"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, WEST_BOUNDS)) {
       return true;
     }
 
@@ -273,7 +278,7 @@ const isBoundedSouth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
 
   while (row < nodeGrid.length) {
     const checkingNode = nodeGrid[row][node.col];
-    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "J", "L"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, SOUTH_BOUNDS)) {
       return true;
     }
 
@@ -287,7 +292,7 @@ const isBoundedEast = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
   let col = node.col;
   while (col < nodeGrid[node.row].length) {
     const checkingNode = nodeGrid[node.row][col];
-    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "F", "7"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, EAST_BOUNDS)) {
       return true;
     }
 
@@ -305,7 +310,7 @@ const isContiguousNorth = (
   while (row >= 0) {
     const checkingNode = nodeGrid[row][node.col];
     if (checkingNode.checked && !checkingNode.inside) return false;
-    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "J", "L"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, NORTH_BOUNDS)) {
       return true;
     }
 
@@ -323,7 +328,7 @@ const isContiguousEast = (
   while (col < nodeGrid[node.row].length) {
     const checkingNode = nodeGrid[node.row][col];
     if (checkingNode.checked && !checkingNode.inside) return false;
-    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "F", "7"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, EAST_BOUNDS)) {
       return true;
     }
 
@@ -341,7 +346,7 @@ const isContiguousSouth = (
   while (row < nodeGrid.length) {
     const checkingNode = nodeGrid[row][node.col];
     if (checkingNode.checked && !checkingNode.inside) return false;
-    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "J", "L"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, SOUTH_BOUNDS)) {
       return true;
     }
 
@@ -359,8 +364,7 @@ const isContiguousWest = (
   while (col >= 0) {
     const checkingNode = nodeGrid[node.row][col];
     if (checkingNode.checked && !checkingNode.inside) return false;
-
-    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "F", "7"])) {
+    if (checkingNode.visited && hasCharacter(checkingNode, WEST_BOUNDS)) {
       return true;
     }
     col--;
@@ -387,7 +391,6 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
       node.inside = boundedNorth && boundedEast && boundedSouth && boundedWest;
     }
   }
-  printGrid(nodeGrid);
 
   const newGrid: GraphNode[][] = [];
 
@@ -420,7 +423,6 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
         insideCount++;
       }
     }
-    console.log(insideCount);
   }
 
   printGrid(newGrid);
