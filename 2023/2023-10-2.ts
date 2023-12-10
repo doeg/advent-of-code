@@ -17,7 +17,7 @@ interface GraphNode {
 // Just parse the input into a grid of strings.
 // We can do the graph-building path separately.
 const parseInput = (): string[][] => {
-  const input = getInput(__filename, true);
+  const input = getInput(__filename, false);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -244,6 +244,10 @@ const NORTH_BOUNDS = ["-", "L", "F", "S"];
 const EAST_BOUNDS = ["|", "J", "L", "S"];
 const SOUTH_BOUNDS = ["-", "L", "F", "S"];
 const WEST_BOUNDS = ["|", "J", "L", "S"];
+// const NORTH_BOUNDS = ["-"];
+// const EAST_BOUNDS = ["|"];
+// const SOUTH_BOUNDS = ["-"];
+// const WEST_BOUNDS = ["|", "S"];
 
 const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
   let row = node.row;
@@ -262,6 +266,8 @@ const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
 
 const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
   let col = node.col;
+  // if (node.row === 4 && node.col === 4) debugger;
+
   while (col >= 0) {
     const checkingNode = nodeGrid[node.row][col];
     if (checkingNode.visited && hasCharacter(checkingNode, WEST_BOUNDS)) {
@@ -269,6 +275,10 @@ const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
     }
 
     col--;
+  }
+
+  if (node.row === 4 && node.col === 4) {
+    console.log("NOT WEST");
   }
   return false;
 };
@@ -374,6 +384,22 @@ const isContiguousWest = (
   return false;
 };
 
+const isContiguousDiagonal = (
+  nodeGrid: GraphNode[][],
+  node: GraphNode,
+  row: number,
+  col: number
+): boolean => {
+  if (row < 0) return false;
+  if (row >= nodeGrid.length) return false;
+  if (col < 0) return false;
+  if (col >= nodeGrid[row].length) return false;
+
+  const check = nodeGrid[row][col];
+  if (check.checked && !check.inside) return false;
+  return true;
+};
+
 const fillGrid = (nodeGrid: GraphNode[][]) => {
   for (let row = 0; row < nodeGrid.length; row++) {
     for (let col = 0; col < nodeGrid[row].length; col++) {
@@ -387,10 +413,18 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
       const boundedSouth = isBoundedSouth(nodeGrid, node);
       const boundedWest = isBoundedWest(nodeGrid, node);
 
+      if (row === 4 && col === 4) {
+        console.log(node);
+        console.log(boundedNorth, boundedEast, boundedSouth, boundedWest);
+      }
+
       node.checked = true;
       node.inside = boundedNorth && boundedEast && boundedSouth && boundedWest;
     }
   }
+
+  // Print interim between fill passes
+  printGrid(nodeGrid);
 
   const newGrid: GraphNode[][] = [];
 
@@ -409,11 +443,24 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
       }
 
       const north = isContiguousNorth(nodeGrid, node);
+      const northEast = isContiguousDiagonal(nodeGrid, node, row - 1, col + 1);
       const east = isContiguousEast(nodeGrid, node);
+      const southEast = isContiguousDiagonal(nodeGrid, node, row + 1, col + 1);
       const south = isContiguousSouth(nodeGrid, node);
+      const southwest = isContiguousDiagonal(nodeGrid, node, row + 1, col - 1);
       const west = isContiguousWest(nodeGrid, node);
+      const northWest = isContiguousDiagonal(nodeGrid, node, row - 1, col - 1);
 
-      const isContiguous = north && east && south && west;
+      const isContiguous =
+        north &&
+        northEast &&
+        east &&
+        southEast &&
+        south &&
+        southwest &&
+        west &&
+        northWest;
+
       newGrid[row][col] = {
         ...node,
         inside: isContiguous,
