@@ -234,16 +234,6 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
       connectNode(nodeGrid, node.row, node.col);
       counter++;
       node.neighbors.forEach((n) => stack.push(n));
-      // [
-      //   getNorthNode(nodeGrid, node.row, node.col),
-      //   getEastNode(nodeGrid, node.row, node.col),
-      //   getSouthNode(nodeGrid, node.row, node.col),
-      //   getWestNode(nodeGrid, node.row, node.col),
-      // ].forEach((n) => {
-      //   if (n) {
-      //     stack.push(n);
-      //   }
-      // });
     }
   }
 
@@ -251,7 +241,5 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
 };
 
 const { startNode, nodeGrid } = buildNodeGrid();
-// connectGrid(nodeGrid, startNode.row, startNode.col, 0);
-
 connectGridInLoop(nodeGrid, startNode);
 printGrid(nodeGrid);
