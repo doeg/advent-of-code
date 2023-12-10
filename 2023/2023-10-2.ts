@@ -249,12 +249,8 @@ const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
     const node = queue.pop();
     if (!node) throw Error("invalid queue");
 
-    if (node.row === 6 && node.col === 2) debugger;
-
     // Don't process nodes that have already been processed as part of this region fill.
     if (node.fillChecked) continue;
-
-    // if (node.visited) continue;
 
     node.fillChecked = true;
 
@@ -269,21 +265,18 @@ const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
     const boundedWest = !!westNode && hasCharacter(westNode, ["|"]);
 
     const push = (n: GraphNode) => {
-      if (n.row === 6 && n.col === 2) {
-        console.log(node);
-        debugger;
-      }
       queue.push(n);
     };
 
     if (!node.visited) {
+      // If the node isn't part of a path, the flood fill can go in any
+      // direction, so check them all.
       if (northNode && !boundedNorth) push(northNode);
       if (eastNode && !boundedEast) push(eastNode);
       if (southNode && !boundedSouth) push(southNode);
       if (westNode && !boundedWest) push(westNode);
     } else {
-      // If we're on a path, allow th4e flood to move through
-      // the pipes
+      // If we're on a path, allow the flood to move through the pipes.
       if (node.s === "|") {
         if (northNode && !boundedNorth) push(northNode);
         if (southNode && !boundedSouth) push(southNode);
@@ -321,7 +314,16 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
     for (let col = 0; col < nodeGrid[row].length; col++) {
       // TODO: Remove
       // For debugging, only start the flood fill at the top left corner.
-      if (row > 0 || col > 0) return;
+      // if (row > 0 || col > 0) return;
+      if (
+        !(
+          row === 0 ||
+          col === 0 ||
+          row === nodeGrid.length ||
+          col === nodeGrid[row].length
+        )
+      )
+        continue;
 
       // Pick a node from which to start the flood fill.
       const node = nodeGrid[row][col];
