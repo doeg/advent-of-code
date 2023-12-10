@@ -238,6 +238,9 @@ const connectGrid = (
     printGrid(nodeGrid);
     console.log();
     console.log("DONE");
+    // The -1 is to exclude the "S".
+    // Since we don't visit already visited nodes, we by definition
+    // only traverse half of the graph, since it's (effectively) a directed graph.
     console.log(counter - 1);
     return;
   }
