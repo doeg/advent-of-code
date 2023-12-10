@@ -247,7 +247,7 @@ const WEST_BOUNDS = ["|", "J", "L", "S"];
 // const NORTH_BOUNDS = ["-"];
 // const EAST_BOUNDS = ["|"];
 // const SOUTH_BOUNDS = ["-"];
-// const WEST_BOUNDS = ["|", "S"];
+// const WEST_BOUNDS = ["|"];
 
 const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
   let row = node.row;
@@ -266,8 +266,6 @@ const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
 
 const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
   let col = node.col;
-  // if (node.row === 4 && node.col === 4) debugger;
-
   while (col >= 0) {
     const checkingNode = nodeGrid[node.row][col];
     if (checkingNode.visited && hasCharacter(checkingNode, WEST_BOUNDS)) {
@@ -277,9 +275,6 @@ const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
     col--;
   }
 
-  if (node.row === 4 && node.col === 4) {
-    console.log("NOT WEST");
-  }
   return false;
 };
 
@@ -413,11 +408,6 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
       const boundedSouth = isBoundedSouth(nodeGrid, node);
       const boundedWest = isBoundedWest(nodeGrid, node);
 
-      if (row === 4 && col === 4) {
-        console.log(node);
-        console.log(boundedNorth, boundedEast, boundedSouth, boundedWest);
-      }
-
       node.checked = true;
       node.inside = boundedNorth && boundedEast && boundedSouth && boundedWest;
     }
@@ -443,23 +433,11 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
       }
 
       const north = isContiguousNorth(nodeGrid, node);
-      // const northEast = isContiguousDiagonal(nodeGrid, node, row - 1, col + 1);
       const east = isContiguousEast(nodeGrid, node);
-      // const southEast = isContiguousDiagonal(nodeGrid, node, row + 1, col + 1);
       const south = isContiguousSouth(nodeGrid, node);
-      // const southwest = isContiguousDiagonal(nodeGrid, node, row + 1, col - 1);
       const west = isContiguousWest(nodeGrid, node);
-      // const northWest = isContiguousDiagonal(nodeGrid, node, row - 1, col - 1);
 
-      const isContiguous =
-        north &&
-        // northEast &&
-        east &&
-        // southEast &&
-        south &&
-        // southwest &&
-        west;
-      // northWest;
+      const isContiguous = north && east && south && west;
 
       newGrid[row][col] = {
         ...node,
