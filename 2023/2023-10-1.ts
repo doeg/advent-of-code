@@ -7,8 +7,11 @@ interface GraphNode {
   s: string;
   d: string;
   neighbors: GraphNode[];
-  visited: boolean;
+  visited: boolean; // True if the node has been visited in the connectGraph function
   empty: boolean;
+
+  inside: boolean;
+  checked: boolean;
 }
 
 // Just parse the input into a grid of strings.
@@ -60,6 +63,10 @@ const buildNodeGrid = (): { startNode: GraphNode; nodeGrid: GraphNode[][] } => {
         empty: s === ".",
         neighbors: [],
         visited: false,
+
+        // Flood fill
+        inside: false,
+        checked: false,
       };
 
       nodeGrid[row][col] = graphNode;
@@ -80,7 +87,10 @@ const printGrid = (grid: GraphNode[][]) => {
     console.log(
       line
         .map(({ d, empty, visited, ...n }) => {
-          if (empty) return chalk.grey(d);
+          if (empty) {
+            if (n.checked) return chalk.red;
+            return chalk.grey(d);
+          }
           return n.neighbors.length ? chalk.green(d) : d;
         })
         .join("")
@@ -237,7 +247,7 @@ const connectGrid = (
   if (node.neighbors.every((n) => n.visited)) {
     printGrid(nodeGrid);
     console.log();
-    console.log("DONE");
+    console.log("CONNECTED");
     // The -1 is to exclude the "S".
     // Since we don't visit already visited nodes, we by definition
     // only traverse half of the graph, since it's (effectively) a directed graph.
@@ -253,5 +263,25 @@ const connectGrid = (
   }, 0);
 };
 
+const fillGrid = (nodeGrid: GraphNode[][]) => {
+  for (let row = 0; row < nodeGrid.length; row++) {
+    for (let col = 0; col < nodeGrid[row].length; col++) {
+      const node = nodeGrid[row][col];
+
+      // Skip non-empty nodes. This includes nodes that are part of the loop.
+      if (!node.empty) continue;
+
+      node.checked = true;
+    }
+  }
+};
+
+// const fillGrid = (nodeGrid: GraphNode[][], row: number, col: number) => {
+//   const node = nodeGrid[row][col];
+// };
+
 const { startNode, nodeGrid } = buildNodeGrid();
 connectGrid(nodeGrid, startNode.row, startNode.col, 0);
+
+// // Start filling at 1,1 since 0,0 will definitely not be enclosed.
+// fillGrid(nodeGrid, 1, 1);

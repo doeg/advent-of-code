@@ -7,14 +7,17 @@ interface GraphNode {
   s: string;
   d: string;
   neighbors: GraphNode[];
-  visited: boolean;
+  visited: boolean; // True if the node has been visited in the connectGraph function
   empty: boolean;
+
+  inside: boolean;
+  checked: boolean;
 }
 
 // Just parse the input into a grid of strings.
 // We can do the graph-building path separately.
 const parseInput = (): string[][] => {
-  const input = getInput(__filename, true);
+  const input = getInput(__filename, false);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -60,6 +63,10 @@ const buildNodeGrid = (): { startNode: GraphNode; nodeGrid: GraphNode[][] } => {
         empty: s === ".",
         neighbors: [],
         visited: false,
+
+        // Flood fill
+        inside: false,
+        checked: false,
       };
 
       nodeGrid[row][col] = graphNode;
@@ -79,9 +86,15 @@ const printGrid = (grid: GraphNode[][]) => {
   grid.forEach((line) => {
     console.log(
       line
-        .map(({ d, empty, visited, ...n }) => {
-          if (empty) return chalk.grey(d);
-          return n.neighbors.length ? chalk.green(d) : d;
+        .map(({ d, ...n }) => {
+          if (n.visited) return chalk.green(d);
+
+          if (n.inside) return chalk.bgCyan(d);
+          if (n.checked) return chalk.red(d);
+
+          return chalk.grey(d);
+          //   if (empty) return chalk.grey(d);
+          //   return n.neighbors.length ? chalk.green(d) : d;
         })
         .join("")
     );
@@ -209,6 +222,8 @@ const connectNode = (
   }
 };
 
+let connectedGrid;
+
 // For the node at `nodeGrid[row][col]`, populate its `neighbors` array
 // with adjacent nodes.
 //
@@ -216,7 +231,7 @@ const connectNode = (
 // The connected nodes are suggested by the shape of the pipe, except for the
 // starting node "S" which can connect to any of N/E/S/W.
 const connectGrid = (
-  nodeGrid: GraphNode[][],
+  //   nodeGrid: GraphNode[][],
   row: number,
   col: number,
   counter: number
@@ -235,21 +250,121 @@ const connectGrid = (
   // console.log();
 
   if (node.neighbors.every((n) => n.visited)) {
-    printGrid(nodeGrid);
-    // console.log();
-    console.log("DONE");
-    // console.log(counter - 1);
+    printGrid(connectedGrid);
+    console.log();
+    console.log("CONNECTED");
+    // The -1 is to exclude the "S".
+    // Since we don't visit already visited nodes, we by definition
+    // only traverse half of the graph, since it's (effectively) a directed graph.
+    console.log(counter - 1);
     return;
   }
-
-  node.neighbors.forEach((node) => {
-    if (!node.visited) {
-      //   setTimeout(() => {
-      connectGrid(nodeGrid, node.row, node.col, counter);
-      //   }, 0);
-    }
-  });
+  setTimeout(() => {
+    node.neighbors.forEach((node) => {
+      if (!node.visited) {
+        connectGrid(node.row, node.col, counter);
+      }
+    });
+  }, 0);
 };
 
+const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let row = node.row;
+
+  while (row >= 0) {
+    const checkingNode = nodeGrid[row][node.col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "L", "J"])) {
+      return true;
+    }
+    row--;
+  }
+
+  return false;
+};
+
+const isBoundedEast = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let col = node.col;
+  while (col >= 0) {
+    const checkingNode = nodeGrid[node.row][col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "J", "7"])) {
+      return true;
+    }
+    col--;
+  }
+  return false;
+};
+
+const isBoundedSouth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let row = node.row;
+
+  while (row < nodeGrid.length) {
+    const checkingNode = nodeGrid[row][node.col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "7", "F"])) {
+      return true;
+    }
+    row++;
+  }
+
+  return false;
+};
+
+const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let col = node.col;
+  while (col < nodeGrid[node.row].length) {
+    const checkingNode = nodeGrid[node.row][col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "F", "L"])) {
+      return true;
+    }
+    col++;
+  }
+  return false;
+};
+
+let insideCount = 0;
+
+const fillGrid = (nodeGrid: GraphNode[][]) => {
+  for (let row = 0; row < nodeGrid.length; row++) {
+    for (let col = 0; col < nodeGrid[row].length; col++) {
+      const node = nodeGrid[row][col];
+
+      //   if (row === 0 && col === 0) {
+      //     debugger;
+      //   }
+
+      // Skip non-empty nodes. This includes nodes that are part of the loop.
+      //   if (!node.empty) continue;
+
+      // Skip nodes that are part of the loop
+      if (node.visited) continue;
+
+      node.checked = true;
+
+      const north = isBoundedNorth(nodeGrid, node);
+      const east = isBoundedEast(nodeGrid, node);
+      const south = isBoundedSouth(nodeGrid, node);
+      const west = isBoundedWest(nodeGrid, node);
+
+      //   console.log(node, north, east, south, west);
+
+      if (!north || !east || !south || !west) continue;
+
+      node.inside = true;
+      insideCount++;
+    }
+  }
+};
+
+// const fillGrid = (nodeGrid: GraphNode[][], row: number, col: number) => {
+//   const node = nodeGrid[row][col];
+// };
+
 const { startNode, nodeGrid } = buildNodeGrid();
-connectGrid(nodeGrid, startNode.row, startNode.col, 0);
+connectedGrid = nodeGrid;
+connectGrid(startNode.row, startNode.col, 0);
+printGrid(connectedGrid);
+// // Start filling at 1,1 since 0,0 will definitely not be enclosed.
+// fillGrid(nodeGrid, 1, 1);
+
+fillGrid(nodeGrid);
+printGrid(nodeGrid);
+console.log(insideCount);
