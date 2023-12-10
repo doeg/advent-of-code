@@ -17,7 +17,7 @@ interface GraphNode {
 // Just parse the input into a grid of strings.
 // We can do the graph-building path separately.
 const parseInput = (): string[][] => {
-  const input = getInput(__filename, false);
+  const input = getInput(__filename, true);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -443,23 +443,23 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
       }
 
       const north = isContiguousNorth(nodeGrid, node);
-      const northEast = isContiguousDiagonal(nodeGrid, node, row - 1, col + 1);
+      // const northEast = isContiguousDiagonal(nodeGrid, node, row - 1, col + 1);
       const east = isContiguousEast(nodeGrid, node);
-      const southEast = isContiguousDiagonal(nodeGrid, node, row + 1, col + 1);
+      // const southEast = isContiguousDiagonal(nodeGrid, node, row + 1, col + 1);
       const south = isContiguousSouth(nodeGrid, node);
-      const southwest = isContiguousDiagonal(nodeGrid, node, row + 1, col - 1);
+      // const southwest = isContiguousDiagonal(nodeGrid, node, row + 1, col - 1);
       const west = isContiguousWest(nodeGrid, node);
-      const northWest = isContiguousDiagonal(nodeGrid, node, row - 1, col - 1);
+      // const northWest = isContiguousDiagonal(nodeGrid, node, row - 1, col - 1);
 
       const isContiguous =
         north &&
-        northEast &&
+        // northEast &&
         east &&
-        southEast &&
+        // southEast &&
         south &&
-        southwest &&
-        west &&
-        northWest;
+        // southwest &&
+        west;
+      // northWest;
 
       newGrid[row][col] = {
         ...node,
