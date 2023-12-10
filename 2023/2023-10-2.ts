@@ -86,12 +86,12 @@ const printGrid = (grid: GraphNode[][]) => {
   grid.forEach((line) => {
     console.log(
       line
-        .map(({ d, empty, visited, ...n }) => {
-          if (empty) {
-            if (n.checked) return chalk.red;
-            return chalk.grey(d);
-          }
-          return n.neighbors.length ? chalk.green(d) : d;
+        .map(({ d, ...n }) => {
+          if (n.visited) return chalk.green(d);
+          if (n.inside) return chalk.bgCyan(d);
+          if (n.checked) return chalk.red(d);
+
+          return chalk.grey(d);
         })
         .join("")
     );
@@ -240,6 +240,91 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
   console.log("DONE", counter);
 };
 
+// ******************************************************
+// FLOOD
+// FILL
+// STUFF
+// ******************************************************
+
+const isBoundedNorth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let row = node.row;
+
+  while (row >= 0) {
+    const checkingNode = nodeGrid[row][node.col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "L", "J"])) {
+      return true;
+    }
+    row--;
+  }
+
+  return false;
+};
+
+const isBoundedEast = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let col = node.col;
+  while (col >= 0) {
+    const checkingNode = nodeGrid[node.row][col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "J", "7"])) {
+      return true;
+    }
+    col--;
+  }
+  return false;
+};
+
+const isBoundedSouth = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let row = node.row;
+
+  while (row < nodeGrid.length) {
+    const checkingNode = nodeGrid[row][node.col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["-", "7", "F"])) {
+      return true;
+    }
+    row++;
+  }
+
+  return false;
+};
+
+const isBoundedWest = (nodeGrid: GraphNode[][], node: GraphNode): boolean => {
+  let col = node.col;
+  while (col < nodeGrid[node.row].length) {
+    const checkingNode = nodeGrid[node.row][col];
+    if (checkingNode.visited && hasCharacter(checkingNode, ["|", "F", "L"])) {
+      return true;
+    }
+    col++;
+  }
+  return false;
+};
+
+const fillGrid = (nodeGrid: GraphNode[][]) => {
+  for (let row = 0; row < nodeGrid.length; row++) {
+    for (let col = 0; col < nodeGrid[row].length; col++) {
+      const node = nodeGrid[row][col];
+      node.checked = true;
+
+      const boundedNorth = isBoundedNorth(nodeGrid, node);
+      const boundedEast = isBoundedEast(nodeGrid, node);
+      const boundedSouth = isBoundedSouth(nodeGrid, node);
+      const boundedWest = isBoundedWest(nodeGrid, node);
+
+      if (!boundedNorth || !boundedEast || !boundedSouth || !boundedWest) {
+        continue;
+      }
+
+      node.inside = true;
+    }
+  }
+};
+
+// ******************************************************
+//
+// ENTRY POINT
+//
+// ******************************************************
 const { startNode, nodeGrid } = buildNodeGrid();
 connectGridInLoop(nodeGrid, startNode);
+printGrid(nodeGrid);
+fillGrid(nodeGrid);
 printGrid(nodeGrid);
