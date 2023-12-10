@@ -237,7 +237,6 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
 // Start a flood fill from the given node.
 const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
   const queue: GraphNode[] = [startNode];
-  const region: GraphNode[] = [];
 
   console.log(
     "Starting flood from node",
@@ -246,13 +245,11 @@ const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
     startNode.d
   );
 
-  let areAnyUnbounded = false;
-
   while (queue.length > 0) {
     const node = queue.pop();
     if (!node) throw Error("invalid queue");
 
-    // if (node.row === 6 && node.col === 2) debugger;
+    if (node.row === 6 && node.col === 2) debugger;
 
     // Don't process nodes that have already been processed as part of this region fill.
     if (node.fillChecked) continue;
@@ -261,17 +258,10 @@ const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
 
     node.fillChecked = true;
 
-    // Push non-path nodes onto the region
-    if (!node.visited) region.push(node);
-
     const northNode = getNode(nodeGrid, node.row - 1, node.col);
     const eastNode = getNode(nodeGrid, node.row, node.col + 1);
     const southNode = getNode(nodeGrid, node.row + 1, node.col);
     const westNode = getNode(nodeGrid, node.row, node.col - 1);
-
-    areAnyUnbounded = [northNode, eastNode, southNode, westNode].every(
-      (n) => !!n
-    );
 
     const boundedNorth = !!northNode && hasCharacter(northNode, ["-"]);
     const boundedEast = !!eastNode && hasCharacter(eastNode, ["|"]);
@@ -279,10 +269,10 @@ const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
     const boundedWest = !!westNode && hasCharacter(westNode, ["|"]);
 
     const push = (n: GraphNode) => {
-      // if (n.row === 6 && n.col === 2) {
-      //   onconsole.log(node);
-      //   debugger;
-      // }
+      if (n.row === 6 && n.col === 2) {
+        console.log(node);
+        debugger;
+      }
       queue.push(n);
     };
 
@@ -308,7 +298,6 @@ const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
         if (northNode && !boundedNorth) push(northNode);
         if (eastNode && !boundedEast) push(eastNode);
       }
-
       if (node.s === "J") {
         if (northNode && !boundedNorth) push(northNode);
         if (westNode && !boundedWest) push(westNode);
@@ -325,10 +314,6 @@ const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
       }
     }
   }
-
-  region.forEach((n) => {
-    if (!areAnyUnbounded) n.inside === true;
-  });
 };
 
 const fillGrid = (nodeGrid: GraphNode[][]) => {
@@ -336,7 +321,7 @@ const fillGrid = (nodeGrid: GraphNode[][]) => {
     for (let col = 0; col < nodeGrid[row].length; col++) {
       // TODO: Remove
       // For debugging, only start the flood fill at the top left corner.
-      // if (row > 0 || col > 0) return;
+      if (row > 0 || col > 0) return;
 
       // Pick a node from which to start the flood fill.
       const node = nodeGrid[row][col];
