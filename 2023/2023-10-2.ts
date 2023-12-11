@@ -102,9 +102,9 @@ const printGrid = (grid: GraphNode[][]) => {
 
           if (
             n.insideFromLeft &&
-            n.insideFromRight &&
+            n.insideFromRight
             // n.insideFromTop &&
-            n.insideFromBottom
+            // n.insideFromBottom
           ) {
             return chalk.bgCyanBright(d);
           }
@@ -296,6 +296,8 @@ const fillFromLeft = (grid: GraphNode[][]) => {
     for (let col = 0; col < grid[row].length; col++) {
       const node = grid[row][col];
 
+      // const openBoundaries = ["|", ]
+
       const isBoundaryNode = ["|", "L", "F", "S"].indexOf(node.s) >= 0;
 
       if (isBoundaryNode) {
@@ -368,11 +370,11 @@ printGrid(nodeGrid);
 fillFromRight(nodeGrid);
 printGrid(nodeGrid);
 
-fillFromTop(nodeGrid);
-printGrid(nodeGrid);
+// fillFromTop(nodeGrid);
+// printGrid(nodeGrid);
 
-fillFromBottom(nodeGrid);
-printGrid(nodeGrid);
+// fillFromBottom(nodeGrid);
+// printGrid(nodeGrid);
 
 // console.log();
 // fillGridFromEdges(nodeGrid);
