@@ -10,10 +10,15 @@ interface GraphNode {
   visited: boolean; // True if the node has been visited in the connectGraph function
   empty: boolean;
 
-  // inside: boolean;
-  // fillChecked: boolean;
+  insideFromLeft?: boolean;
+  insideFromRight?: boolean;
+  insideHorizontalChecked?: boolean;
 
-  filled: boolean;
+  insideVertical: boolean;
+  insideVerticalChecked?: boolean;
+
+  insideFromTop?: boolean;
+  insideFromBottom?: boolean;
 }
 
 // Just parse the input into a grid of strings.
@@ -66,8 +71,11 @@ const buildNodeGrid = (): { startNode: GraphNode; nodeGrid: GraphNode[][] } => {
         neighbors: [],
         visited: false,
 
+        insideFromLeft: false,
+        insideVertical: false,
+
         // Flood fill
-        filled: false,
+        // filled: false
       };
 
       nodeGrid[row][col] = graphNode;
@@ -89,13 +97,23 @@ const printGrid = (grid: GraphNode[][]) => {
       line
         .map(({ d, ...n }) => {
           if (n.visited) {
-            return n.filled ? chalk.bgGreen(chalk.black(d)) : chalk.green(d);
-            // return chalk.green(d);
+            return chalk.green(d);
           }
-          // if (n.inside) return chalk.bgCyan(d);
-          if (n.filled) return chalk.red(d);
 
-          return chalk.bgCyan(d);
+          if (
+            n.insideFromLeft &&
+            n.insideFromRight &&
+            // n.insideFromTop &&
+            n.insideFromBottom
+          ) {
+            return chalk.bgCyanBright(d);
+          }
+
+          if (n.insideHorizontalChecked) {
+            return chalk.white(d);
+          }
+
+          return chalk.grey(d);
         })
         .join("")
     );
@@ -238,157 +256,100 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
   console.log("DONE", counter);
 };
 
-const fillGridFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
-  const queue: (GraphNode | null)[] = [startNode];
+// Fill from the top down
+const fillFromTop = (grid: GraphNode[][]) => {
+  for (let col = 0; col < grid[0].length; col++) {
+    let currentRegion: GraphNode[] = [];
+    let isCurrentlyInside = false;
 
-  while (queue.length > 0) {
-    const node = queue.pop();
-    if (!node) continue;
+    for (let row = 0; row < grid.length; row++) {
+      const node = grid[row][col];
 
-    node.filled = true;
+      const isBoundaryNode = ["-", "S", "7", "F"].indexOf(node.s) >= 0;
+      if (isBoundaryNode) {
+        currentRegion.forEach((node) => {
+          node.insideFromTop = isCurrentlyInside;
+        });
 
-    const northNode = getNode(nodeGrid, node.row - 1, node.col);
-    const eastNode = getNode(nodeGrid, node.row, node.col + 1);
-    const southNode = getNode(nodeGrid, node.row + 1, node.col);
-    const westNode = getNode(nodeGrid, node.row, node.col - 1);
-
-    const canGoNorth =
-      northNode && !northNode.filled && !hasCharacter(northNode, ["-"]);
-    const canGoSouth =
-      southNode && !southNode.filled && !hasCharacter(southNode, ["-"]);
-
-    const canGoEast =
-      eastNode && !eastNode.filled && !hasCharacter(eastNode, ["|"]);
-    const canGoWest =
-      westNode && !westNode.filled && !hasCharacter(westNode, ["|"]);
-
-    if (!node.visited) {
-      if (canGoNorth) queue.push(northNode);
-      if (canGoEast) queue.push(eastNode);
-      if (canGoWest) queue.push(westNode);
-      if (canGoSouth) queue.push(southNode);
-      continue;
-    }
-
-    if (node.s === "|") {
-      if (canGoNorth && !hasCharacter(northNode, ["-", "L", "J"])) {
-        queue.push(northNode);
-      }
-
-      if (canGoSouth && !hasCharacter(southNode, ["-", "F", "7"])) {
-        queue.push(southNode);
+        isCurrentlyInside = !isCurrentlyInside;
+        currentRegion = [];
+      } else if (!node.visited) {
+        currentRegion.push(node);
       }
     }
 
-    if (node.s === "-") {
-      if (canGoEast && !hasCharacter(eastNode, ["|", "F", "L"])) {
-        queue.push(eastNode);
-      }
-
-      if (canGoWest && !hasCharacter(westNode, ["|", "J", "7"])) {
-        queue.push(westNode);
-      }
-    }
-
-    // J is a 90-degree bend connecting north and west.
-    if (node.s === "J") {
-      // North - connected
-      if (canGoNorth && !hasCharacter(northNode, ["-", "J", "L"])) {
-        queue.push(northNode);
-      }
-
-      // East - not connected
-      // if (canGoEast && eastNode.s === ".") {
-      //   queue.push(eastNode);
-      // }
-
-      // South - not connected
-      // if (canGoSouth && southNode.s === ".") {
-      //   queue.push(southNode);
-      // }
-
-      // West - connected;
-      if (canGoWest && !hasCharacter(westNode, ["|", "J", "7"])) {
-        queue.push(westNode);
-      }
-    }
-
-    // L is a 90-degree bend connecting north and east.
-    if (node.s === "L") {
-      // North - connected
-      if (canGoNorth && !hasCharacter(northNode, ["-", "J", "L"])) {
-        queue.push(northNode);
-      }
-
-      // East - connected
-      if (canGoEast && !hasCharacter(eastNode, ["|", "F", "L"])) {
-        queue.push(eastNode);
-      }
-
-      // South - not connected
-      // if (canGoSouth && southNode.s === ".") {
-      //   queue.push(southNode);
-      // }
-
-      // West - not connected
-      // if (canGoWest && westNode.s === ".") {
-      //   queue.push(westNode);
-      // }
-    }
-
-    // 7 is a 90-degree bend connecting south and west.
-    if (node.s === "7") {
-      // if (canGoNorth && northNode.s === ".") {
-      //   queue.push(northNode);
-      // }
-
-      // South - connected
-      if (canGoSouth && !hasCharacter(southNode, ["-", "7", "F"])) {
-        queue.push(southNode);
-      }
-
-      // West - connected
-      if (canGoWest && !hasCharacter(westNode, ["|", "J", "7"])) {
-        queue.push(westNode);
-      }
-    }
-
-    // F is a 90-degree bend connecting south and east.
-    if (node.s === "F") {
-      // if (canGoNorth && northNode.s === ".") {
-      //   queue.push(northNode);
-      // }
-
-      if (canGoSouth && !hasCharacter(southNode, ["-", "7", "F"])) {
-        queue.push(southNode);
-      }
-
-      if (canGoEast && !hasCharacter(eastNode, ["|", "F", "L"])) {
-        queue.push(eastNode);
-      }
-    }
+    // Flush out the remaining region.
+    currentRegion.forEach((node) => {
+      node.insideFromTop = isCurrentlyInside;
+    });
   }
 };
 
-const fillGridFromEdges = (nodeGrid: GraphNode[][]) => {
-  // Fill from top row
-  for (let col = 0; col < nodeGrid[0].length; col++) {
-    fillGridFromNode(nodeGrid, nodeGrid[0][col]);
-  }
+const fillFromBottom = (grid: GraphNode[][]) => {};
 
-  // Fill from bottom row
-  for (let col = 0; col < nodeGrid[0].length; col++) {
-    fillGridFromNode(nodeGrid, nodeGrid[nodeGrid.length - 1][col]);
-  }
+// Fill from side to side, setting node.insideHorizontal.
+const fillFromLeft = (grid: GraphNode[][]) => {
+  for (let row = 0; row < grid.length; row++) {
+    let currentRegion: GraphNode[] = [];
+    let isCurrentlyInside = false;
 
-  // Fill from left edge
-  for (let row = 0; row < nodeGrid.length; row++) {
-    fillGridFromNode(nodeGrid, nodeGrid[row][0]);
-  }
+    for (let col = 0; col < grid[row].length; col++) {
+      const node = grid[row][col];
 
-  // Fill from right edge
-  for (let row = 0; row < nodeGrid.length; row++) {
-    fillGridFromNode(nodeGrid, nodeGrid[row][nodeGrid[0].length - 1]);
+      const isBoundaryNode = ["|", "L", "F", "S"].indexOf(node.s) >= 0;
+
+      if (isBoundaryNode) {
+        currentRegion.forEach((node) => {
+          node.insideFromLeft = isCurrentlyInside;
+          node.insideHorizontalChecked = true;
+        });
+
+        isCurrentlyInside = !isCurrentlyInside;
+        currentRegion = [];
+      } else if (!node.visited) {
+        currentRegion.push(node);
+      }
+    }
+
+    // Flush out the remaining region.
+    currentRegion.forEach((node) => {
+      node.insideFromLeft = isCurrentlyInside;
+      node.insideHorizontalChecked = true;
+    });
+  }
+};
+
+const fillFromRight = (grid: GraphNode[][]) => {
+  for (let row = 0; row < grid.length; row++) {
+    let currentRegion: GraphNode[] = [];
+    let isCurrentlyInside = false;
+
+    for (let col = grid[row].length - 1; col >= 0; col--) {
+      const node = grid[row][col];
+
+      const isBoundaryNode = ["|", "J", "7", "S"].indexOf(node.s) >= 0;
+
+      if (isBoundaryNode) {
+        currentRegion.forEach((node) => {
+          node.insideFromRight = isCurrentlyInside;
+          node.insideHorizontalChecked = true;
+        });
+
+        isCurrentlyInside = !isCurrentlyInside;
+        currentRegion = [];
+      } else if (!node.visited) {
+        currentRegion.push(node);
+      }
+    }
+
+    // Flush out the remaining region.
+    console.log(currentRegion);
+    console.log(isCurrentlyInside);
+
+    currentRegion.forEach((node) => {
+      node.insideFromRight = isCurrentlyInside;
+      node.insideHorizontalChecked = true;
+    });
   }
 };
 
@@ -401,18 +362,30 @@ const { startNode, nodeGrid } = buildNodeGrid();
 connectGridInLoop(nodeGrid, startNode);
 printGrid(nodeGrid);
 
-console.log();
-fillGridFromEdges(nodeGrid);
+fillFromLeft(nodeGrid);
 printGrid(nodeGrid);
 
-let count = 0;
-for (let row = 0; row < nodeGrid.length; row++) {
-  for (let col = 0; col < nodeGrid[row].length; col++) {
-    const node = nodeGrid[row][col];
-    if (!node.visited && !node.filled) {
-      count++;
-    }
-  }
-}
-console.log(count);
+fillFromRight(nodeGrid);
+printGrid(nodeGrid);
+
+fillFromTop(nodeGrid);
+printGrid(nodeGrid);
+
+fillFromBottom(nodeGrid);
+printGrid(nodeGrid);
+
+// console.log();
+// fillGridFromEdges(nodeGrid);
+// printGrid(nodeGrid);
+
+// let count = 0;
+// for (let row = 0; row < nodeGrid.length; row++) {
+//   for (let col = 0; col < nodeGrid[row].length; col++) {
+//     const node = nodeGrid[row][col];
+//     if (!node.visited && !node.filled) {
+//       count++;
+//     }
+//   }
+// }
+// console.log(count);
 // console.log(nodeGrid[0].length, nodeGrid.length);
