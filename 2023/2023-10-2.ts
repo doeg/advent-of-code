@@ -88,7 +88,10 @@ const printGrid = (grid: GraphNode[][]) => {
     console.log(
       line
         .map(({ d, ...n }) => {
-          if (n.visited) return chalk.green(d);
+          if (n.visited) {
+            // return n.filled ? chalk.bgCyan(chalk.black(d)) : chalk.green(d);
+            return chalk.green(d);
+          }
           // if (n.inside) return chalk.bgCyan(d);
           if (n.filled) return chalk.red(d);
 
@@ -236,11 +239,11 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
 };
 
 const fillGridFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
-  const queue = [startNode];
+  const queue: (GraphNode | null)[] = [startNode];
 
   while (queue.length > 0) {
     const node = queue.pop();
-    if (!node) throw Error("weird queue");
+    if (!node) continue;
 
     node.filled = true;
 
@@ -258,6 +261,121 @@ const fillGridFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
           queue.push(n);
         }
       });
+      continue;
+    }
+
+    // | is a vertical pipe connecting north and south.
+    if (node.s === "|") {
+      if (
+        northNode &&
+        !northNode.filled &&
+        !hasCharacter(northNode, ["-", "L", "J"])
+      ) {
+        queue.push(northNode);
+      }
+
+      if (
+        southNode &&
+        !southNode.filled &&
+        !hasCharacter(southNode, ["-", "F", "7"])
+      ) {
+        queue.push(southNode);
+      }
+    }
+
+    // - is a horizontal pipe connecting east and west.
+    if (node.s === "-") {
+      if (
+        eastNode &&
+        !eastNode.filled &&
+        !hasCharacter(eastNode, ["|", "F", "L"])
+      ) {
+        queue.push(eastNode);
+      }
+
+      if (
+        westNode &&
+        !westNode.filled &&
+        !hasCharacter(westNode, ["|", "J", "7"])
+      ) {
+        queue.push(westNode);
+      }
+    }
+
+    // L is a 90-degree bend connecting north and east.
+    if (node.s === "L") {
+      if (
+        northNode &&
+        !northNode.filled &&
+        !hasCharacter(northNode, ["-", "L", "J"])
+      ) {
+        queue.push(northNode);
+      }
+
+      if (
+        eastNode &&
+        !eastNode.filled &&
+        !hasCharacter(eastNode, ["|", "F", "L"])
+      ) {
+        queue.push(eastNode);
+      }
+    }
+
+    // J is a 90-degree bend connecting north and west.
+    if (node.s === "J") {
+      if (
+        northNode &&
+        !northNode.filled &&
+        !hasCharacter(northNode, ["-", "L", "J"])
+      ) {
+        queue.push(northNode);
+      }
+
+      if (
+        westNode &&
+        !westNode.filled &&
+        !hasCharacter(westNode, ["|", "J", "7"])
+      ) {
+        queue.push(westNode);
+      }
+    }
+
+    // 7 is a 90-degree bend connecting south and west.
+    if (node.s === "7") {
+      if (
+        southNode &&
+        !southNode.filled &&
+        !hasCharacter(southNode, ["-", "F", "7"])
+      ) {
+        queue.push(southNode);
+      }
+
+      if (
+        westNode &&
+        !westNode.filled &&
+        !hasCharacter(westNode, ["|", "J", "7"])
+      ) {
+        queue.push(westNode);
+      }
+    }
+
+    // F is a 90-degree bend connecting south and east.
+    if (node.s === "F") {
+      if (
+        southNode &&
+        !southNode.filled &&
+        !hasCharacter(southNode, ["-", "F", "7"])
+      ) {
+        queue.push(southNode);
+      }
+
+      if (
+        eastNode &&
+        !eastNode.filled &&
+        !hasCharacter(eastNode, ["|", "F", "L"])
+      ) {
+        queue.push(eastNode);
+      }
     }
   }
 };
@@ -296,3 +414,14 @@ printGrid(nodeGrid);
 console.log();
 fillGridFromEdges(nodeGrid);
 printGrid(nodeGrid);
+
+let count = 0;
+for (let row = 0; row < nodeGrid.length; row++) {
+  for (let col = 0; col < nodeGrid[row].length; col++) {
+    const node = nodeGrid[row][col];
+    if (!node.visited && !node.filled) {
+      count++;
+    }
+  }
+}
+console.log(count);
