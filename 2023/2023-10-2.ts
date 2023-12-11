@@ -89,8 +89,8 @@ const printGrid = (grid: GraphNode[][]) => {
       line
         .map(({ d, ...n }) => {
           if (n.visited) {
-            // return n.filled ? chalk.bgCyan(chalk.black(d)) : chalk.green(d);
-            return chalk.green(d);
+            return n.filled ? chalk.bgGreen(chalk.black(d)) : chalk.green(d);
+            // return chalk.green(d);
           }
           // if (n.inside) return chalk.bgCyan(d);
           if (n.filled) return chalk.red(d);
@@ -252,128 +252,118 @@ const fillGridFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
     const southNode = getNode(nodeGrid, node.row + 1, node.col);
     const westNode = getNode(nodeGrid, node.row, node.col - 1);
 
-    // Simple case: the current node is not a path node.
-    // Each cardinal direction can be checked.
+    const canGoNorth =
+      northNode && !northNode.filled && !hasCharacter(northNode, ["-"]);
+    const canGoSouth =
+      southNode && !southNode.filled && !hasCharacter(southNode, ["-"]);
+
+    const canGoEast =
+      eastNode && !eastNode.filled && !hasCharacter(eastNode, ["|"]);
+    const canGoWest =
+      westNode && !westNode.filled && !hasCharacter(westNode, ["|"]);
+
     if (!node.visited) {
-      const neighbors = [northNode, eastNode, southNode, westNode];
-      neighbors.forEach((n) => {
-        if (n && !n.filled) {
-          queue.push(n);
-        }
-      });
+      if (canGoNorth) queue.push(northNode);
+      if (canGoEast) queue.push(eastNode);
+      if (canGoWest) queue.push(westNode);
+      if (canGoSouth) queue.push(southNode);
       continue;
     }
 
-    // | is a vertical pipe connecting north and south.
     if (node.s === "|") {
-      if (
-        northNode &&
-        !northNode.filled &&
-        !hasCharacter(northNode, ["-", "L", "J"])
-      ) {
+      if (canGoNorth && !hasCharacter(northNode, ["-", "L", "J"])) {
         queue.push(northNode);
       }
 
-      if (
-        southNode &&
-        !southNode.filled &&
-        !hasCharacter(southNode, ["-", "F", "7"])
-      ) {
+      if (canGoSouth && !hasCharacter(southNode, ["-", "F", "7"])) {
         queue.push(southNode);
       }
     }
 
-    // - is a horizontal pipe connecting east and west.
     if (node.s === "-") {
-      if (
-        eastNode &&
-        !eastNode.filled &&
-        !hasCharacter(eastNode, ["|", "F", "L"])
-      ) {
+      if (canGoEast && !hasCharacter(eastNode, ["|", "F", "L"])) {
         queue.push(eastNode);
       }
 
-      if (
-        westNode &&
-        !westNode.filled &&
-        !hasCharacter(westNode, ["|", "J", "7"])
-      ) {
+      if (canGoWest && !hasCharacter(westNode, ["|", "J", "7"])) {
+        queue.push(westNode);
+      }
+    }
+
+    // J is a 90-degree bend connecting north and west.
+    if (node.s === "J") {
+      // North - connected
+      if (canGoNorth && !hasCharacter(northNode, ["-", "J", "L"])) {
+        queue.push(northNode);
+      }
+
+      // East - not connected
+      // if (canGoEast && eastNode.s === ".") {
+      //   queue.push(eastNode);
+      // }
+
+      // South - not connected
+      // if (canGoSouth && southNode.s === ".") {
+      //   queue.push(southNode);
+      // }
+
+      // West - connected;
+      if (canGoWest && !hasCharacter(westNode, ["|", "J", "7"])) {
         queue.push(westNode);
       }
     }
 
     // L is a 90-degree bend connecting north and east.
     if (node.s === "L") {
-      if (
-        northNode &&
-        !northNode.filled &&
-        !hasCharacter(northNode, ["-", "L", "J"])
-      ) {
+      // North - connected
+      if (canGoNorth && !hasCharacter(northNode, ["-", "J", "L"])) {
         queue.push(northNode);
       }
 
-      if (
-        eastNode &&
-        !eastNode.filled &&
-        !hasCharacter(eastNode, ["|", "F", "L"])
-      ) {
+      // East - connected
+      if (canGoEast && !hasCharacter(eastNode, ["|", "F", "L"])) {
         queue.push(eastNode);
       }
-    }
 
-    // J is a 90-degree bend connecting north and west.
-    if (node.s === "J") {
-      if (
-        northNode &&
-        !northNode.filled &&
-        !hasCharacter(northNode, ["-", "L", "J"])
-      ) {
-        queue.push(northNode);
-      }
+      // South - not connected
+      // if (canGoSouth && southNode.s === ".") {
+      //   queue.push(southNode);
+      // }
 
-      if (
-        westNode &&
-        !westNode.filled &&
-        !hasCharacter(westNode, ["|", "J", "7"])
-      ) {
-        queue.push(westNode);
-      }
+      // West - not connected
+      // if (canGoWest && westNode.s === ".") {
+      //   queue.push(westNode);
+      // }
     }
 
     // 7 is a 90-degree bend connecting south and west.
     if (node.s === "7") {
-      if (
-        southNode &&
-        !southNode.filled &&
-        !hasCharacter(southNode, ["-", "F", "7"])
-      ) {
+      // if (canGoNorth && northNode.s === ".") {
+      //   queue.push(northNode);
+      // }
+
+      // South - connected
+      if (canGoSouth && !hasCharacter(southNode, ["-", "7", "F"])) {
         queue.push(southNode);
       }
 
-      if (
-        westNode &&
-        !westNode.filled &&
-        !hasCharacter(westNode, ["|", "J", "7"])
-      ) {
+      // West - connected
+      if (canGoWest && !hasCharacter(westNode, ["|", "J", "7"])) {
         queue.push(westNode);
       }
     }
 
     // F is a 90-degree bend connecting south and east.
     if (node.s === "F") {
-      if (
-        southNode &&
-        !southNode.filled &&
-        !hasCharacter(southNode, ["-", "F", "7"])
-      ) {
+      // if (canGoNorth && northNode.s === ".") {
+      //   queue.push(northNode);
+      // }
+
+      if (canGoSouth && !hasCharacter(southNode, ["-", "7", "F"])) {
         queue.push(southNode);
       }
 
-      if (
-        eastNode &&
-        !eastNode.filled &&
-        !hasCharacter(eastNode, ["|", "F", "L"])
-      ) {
+      if (canGoEast && !hasCharacter(eastNode, ["|", "F", "L"])) {
         queue.push(eastNode);
       }
     }
@@ -425,3 +415,4 @@ for (let row = 0; row < nodeGrid.length; row++) {
   }
 }
 console.log(count);
+// console.log(nodeGrid[0].length, nodeGrid.length);
