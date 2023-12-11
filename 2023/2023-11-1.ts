@@ -13,7 +13,7 @@ type Grid = GridNode[][];
 
 // Returns a grid of grid nodes, plus an array of all galaxies
 const parseInput = (): { grid: Grid; galaxies: GridNode[] } => {
-  const input = getInput(__filename, true);
+  const input = getInput(__filename, false);
   const galaxies: GridNode[] = [];
 
   let galaxyCounter = 1;
@@ -113,11 +113,7 @@ const inflateGrid = (grid: Grid): Grid => {
 
   // Inflate by col
   Object.keys(emptyCols).forEach((colKey, idx) => {
-    // if (colKey !== "2") return;
-    // if (colKey > 5) return;
-
     const col = parseInt(colKey);
-    console.log("inflating col", col);
 
     for (let row = 0; row < newGrid.length; row++) {
       newGrid[row].splice(col + idx, 0, {
@@ -130,12 +126,66 @@ const inflateGrid = (grid: Grid): Grid => {
     }
   });
 
+  // Fix coordinates
+  for (let row = 0; row < newGrid.length; row++) {
+    for (let col = 0; col < newGrid[row].length; col++) {
+      newGrid[row][col].row = row;
+      newGrid[row][col].col = col;
+    }
+  }
+
   return newGrid;
 };
 
-const { grid, galaxies } = parseInput();
-printGrid(grid);
-console.log(galaxies);
+const findGalaxies = (grid: GridNode[][]): GridNode[] => {
+  const galaxies: GridNode[] = [];
+  for (let row = 0; row < grid.length; row++) {
+    for (let col = 0; col < grid[row].length; col++) {
+      const node = grid[row][col];
+      if (node.galaxy) galaxies.push(node);
+    }
+  }
+  return galaxies;
+};
+
+const makeKey = (a: GridNode, b: GridNode): string => {
+  return [a.galaxy, b.galaxy].sort().join("--");
+};
+
+const findDistances = (galaxies: GridNode[]) => {
+  const memoizedByPair: { [key: string]: number } = {};
+
+  for (let s = 0; s < galaxies.length; s++) {
+    for (let d = 0; d < galaxies.length; d++) {
+      if (s === d) continue;
+
+      const source = galaxies[s];
+      const dest = galaxies[d];
+
+      const key = makeKey(source, dest);
+      if (key in memoizedByPair) continue;
+
+      const absRow = Math.abs(source.row - dest.row);
+      const absCol = Math.abs(source.col - dest.col);
+      const distance = absRow + absCol;
+
+      memoizedByPair[key] = distance;
+    }
+  }
+
+  const sum = Object.values(memoizedByPair).reduce((acc, v) => {
+    acc += v;
+    return acc;
+  }, 0);
+  console.log(sum);
+};
+
+const { grid } = parseInput();
+// printGrid(grid);
+// console.log(findGalaxies(grid));
 
 const inflatedGrid = inflateGrid(grid);
-printGrid(inflatedGrid);
+// printGrid(inflatedGrid);
+
+// console.log(findGalaxies(inflatedGrid));
+findDistances(findGalaxies(inflatedGrid));
