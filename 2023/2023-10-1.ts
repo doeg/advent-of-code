@@ -12,6 +12,8 @@ interface GraphNode {
 
   inside: boolean;
   checked: boolean;
+
+  filled: boolean;
 }
 
 // Just parse the input into a grid of strings.

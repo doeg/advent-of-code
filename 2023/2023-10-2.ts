@@ -10,8 +10,10 @@ interface GraphNode {
   visited: boolean; // True if the node has been visited in the connectGraph function
   empty: boolean;
 
-  inside: boolean;
-  fillChecked: boolean;
+  // inside: boolean;
+  // fillChecked: boolean;
+
+  filled: boolean;
 }
 
 // Just parse the input into a grid of strings.
@@ -65,8 +67,7 @@ const buildNodeGrid = (): { startNode: GraphNode; nodeGrid: GraphNode[][] } => {
         visited: false,
 
         // Flood fill
-        inside: false,
-        fillChecked: false,
+        filled: false,
       };
 
       nodeGrid[row][col] = graphNode;
@@ -88,8 +89,8 @@ const printGrid = (grid: GraphNode[][]) => {
       line
         .map(({ d, ...n }) => {
           if (n.visited) return chalk.green(d);
-          if (n.inside) return chalk.bgCyan(d);
-          if (n.fillChecked) return chalk.red(d);
+          // if (n.inside) return chalk.bgCyan(d);
+          if (n.filled) return chalk.red(d);
 
           return chalk.bgCyan(d);
         })
@@ -234,109 +235,48 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
   console.log("DONE", counter);
 };
 
-// Start a flood fill from the given node.
-const floodFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode): void => {
-  const queue: GraphNode[] = [startNode];
-
-  console.log(
-    "Starting flood from node",
-    startNode.row,
-    startNode.col,
-    startNode.d
-  );
+const fillGridFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
+  const queue = [startNode];
 
   while (queue.length > 0) {
     const node = queue.pop();
-    if (!node) throw Error("invalid queue");
+    if (!node) throw Error("weird queue");
 
-    // Don't process nodes that have already been processed as part of this region fill.
-    if (node.fillChecked) continue;
-
-    node.fillChecked = true;
+    node.filled = true;
 
     const northNode = getNode(nodeGrid, node.row - 1, node.col);
     const eastNode = getNode(nodeGrid, node.row, node.col + 1);
     const southNode = getNode(nodeGrid, node.row + 1, node.col);
     const westNode = getNode(nodeGrid, node.row, node.col - 1);
 
-    const boundedNorth = !!northNode && hasCharacter(northNode, ["-"]);
-    const boundedEast = !!eastNode && hasCharacter(eastNode, ["|"]);
-    const boundedSouth = !!southNode && hasCharacter(southNode, ["-"]);
-    const boundedWest = !!westNode && hasCharacter(westNode, ["|"]);
-
-    const push = (n: GraphNode) => {
-      queue.push(n);
-    };
-
-    if (!node.visited) {
-      // If the node isn't part of a path, the flood fill can go in any
-      // direction, so check them all.
-      if (northNode && !boundedNorth) push(northNode);
-      if (eastNode && !boundedEast) push(eastNode);
-      if (southNode && !boundedSouth) push(southNode);
-      if (westNode && !boundedWest) push(westNode);
-    } else {
-      // If we're on a path, allow the flood to move through the pipes.
-      if (node.s === "|") {
-        if (northNode && !boundedNorth) push(northNode);
-        if (southNode && !boundedSouth) push(southNode);
+    const neighbors = [northNode, eastNode, southNode, westNode];
+    neighbors.forEach((n) => {
+      if (n && !n.filled && !n.visited) {
+        queue.push(n);
       }
-
-      if (node.s === "-") {
-        if (eastNode && !boundedEast) push(eastNode);
-        if (westNode && !boundedWest) push(westNode);
-      }
-
-      if (node.s === "L") {
-        if (northNode && !boundedNorth) push(northNode);
-        if (eastNode && !boundedEast) push(eastNode);
-      }
-      if (node.s === "J") {
-        if (northNode && !boundedNorth) push(northNode);
-        if (westNode && !boundedWest) push(westNode);
-      }
-
-      if (node.s === "7") {
-        if (southNode && !boundedSouth) push(southNode);
-        if (westNode && !boundedWest) push(westNode);
-      }
-
-      if (node.s === "F") {
-        if (southNode && !boundedSouth) push(southNode);
-        if (eastNode && !boundedEast) push(eastNode);
-      }
-    }
+    });
   }
 };
 
-const fillGrid = (nodeGrid: GraphNode[][]) => {
+const fillGridFromEdges = (nodeGrid: GraphNode[][]) => {
+  // Fill from top row
+  for (let col = 0; col < nodeGrid[0].length; col++) {
+    fillGridFromNode(nodeGrid, nodeGrid[0][col]);
+  }
+
+  // Fill from bottom row
+  for (let col = 0; col < nodeGrid[0].length; col++) {
+    fillGridFromNode(nodeGrid, nodeGrid[nodeGrid.length - 1][col]);
+  }
+
+  // Fill from left edge
   for (let row = 0; row < nodeGrid.length; row++) {
-    for (let col = 0; col < nodeGrid[row].length; col++) {
-      // TODO: Remove
-      // For debugging, only start the flood fill at the top left corner.
-      // if (row > 0 || col > 0) return;
-      if (
-        !(
-          row === 0 ||
-          col === 0 ||
-          row === nodeGrid.length ||
-          col === nodeGrid[row].length
-        )
-      )
-        continue;
+    fillGridFromNode(nodeGrid, nodeGrid[row][0]);
+  }
 
-      // Pick a node from which to start the flood fill.
-      const node = nodeGrid[row][col];
-
-      // If the node is part of a path, do not bother doing a flood fill
-      // starting at this position. This may or may not be accurate...?
-      if (node.visited) continue;
-
-      // If we've already processed this node as part of a previous flood fill, continue.
-      if (node.fillChecked) continue;
-
-      floodFromNode(nodeGrid, node);
-    }
+  // Fill from right edge
+  for (let row = 0; row < nodeGrid.length; row++) {
+    fillGridFromNode(nodeGrid, nodeGrid[row][nodeGrid[0].length - 1]);
   }
 };
 
@@ -349,5 +289,6 @@ const { startNode, nodeGrid } = buildNodeGrid();
 connectGridInLoop(nodeGrid, startNode);
 printGrid(nodeGrid);
 
-fillGrid(nodeGrid);
+console.log();
+fillGridFromEdges(nodeGrid);
 printGrid(nodeGrid);
