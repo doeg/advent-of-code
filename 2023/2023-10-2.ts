@@ -249,12 +249,16 @@ const fillGridFromNode = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
     const southNode = getNode(nodeGrid, node.row + 1, node.col);
     const westNode = getNode(nodeGrid, node.row, node.col - 1);
 
-    const neighbors = [northNode, eastNode, southNode, westNode];
-    neighbors.forEach((n) => {
-      if (n && !n.filled && !n.visited) {
-        queue.push(n);
-      }
-    });
+    // Simple case: the current node is not a path node.
+    // Each cardinal direction can be checked.
+    if (!node.visited) {
+      const neighbors = [northNode, eastNode, southNode, westNode];
+      neighbors.forEach((n) => {
+        if (n && !n.filled) {
+          queue.push(n);
+        }
+      });
+    }
   }
 };
 
