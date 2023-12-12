@@ -11,6 +11,11 @@ interface GraphNode {
   empty: boolean;
 
   insideFromLeft?: boolean;
+  checkedFromLeft?: boolean;
+
+  insideFromTop?: boolean;
+  checkedFromTop?: boolean;
+
   insideFromRight?: boolean;
   insideHorizontalChecked?: boolean;
 
@@ -100,16 +105,23 @@ const printGrid = (grid: GraphNode[][]) => {
             return chalk.green(d);
           }
 
-          if (
-            n.insideFromLeft &&
-            n.insideFromRight
-            // n.insideFromTop &&
-            // n.insideFromBottom
-          ) {
+          if (n.insideFromLeft && n.insideFromTop) {
             return chalk.bgCyanBright(d);
           }
 
-          if (n.insideHorizontalChecked) {
+          if (n.insideFromLeft) {
+            return chalk.bgWhite(d);
+          }
+
+          if (n.insideFromTop) {
+            return chalk.bgMagenta(d);
+          }
+
+          if (n.checkedFromTop) {
+            return chalk.magenta(d);
+          }
+
+          if (n.checkedFromLeft) {
             return chalk.white(d);
           }
 
@@ -256,102 +268,84 @@ const connectGridInLoop = (nodeGrid: GraphNode[][], startNode: GraphNode) => {
   console.log("DONE", counter);
 };
 
-// Fill from the top down
-const fillFromTop = (grid: GraphNode[][]) => {
+const fillRowFromLeft = (row: GraphNode[]) => {
+  let isInside = false;
+  const regionStack: GraphNode[][] = [];
+  let currentRegion: GraphNode[] = [];
+
+  for (let col = 0; col < row.length; col++) {
+    const node = row[col];
+
+    // If the node is not part of a path, just add it to the reason.
+    if (!node.visited) {
+      node.insideFromLeft = isInside;
+      node.checkedFromLeft = true;
+      currentRegion.push(node);
+      continue;
+    }
+
+    // When coming from the left, these are the "opening" boundaries of a new section.
+    if (!isInside && ["|", "F", "L", "S"].indexOf(node.s) >= 0) {
+      regionStack.push(currentRegion);
+      isInside = true;
+      continue;
+    }
+
+    // When coming from the left, these are the "closing boundaries" of a new section.
+    if (isInside && ["|", "7", "J", "S"].indexOf(node.s) >= 0) {
+      const r = regionStack.pop();
+      if (!r) throw Error("weird stack");
+      currentRegion = r;
+      isInside = false;
+      continue;
+    }
+  }
+};
+
+const fillAllFromLeft = (grid: GraphNode[][]) => {
+  for (let row = 0; row < grid.length; row++) {
+    fillRowFromLeft(grid[row]);
+  }
+};
+
+const fillColFromTop = (grid: GraphNode[][], col: number) => {
+  let isInside = false;
+  const regionStack: GraphNode[][] = [];
+  let currentRegion: GraphNode[] = [];
+
+  for (let row = 0; row < grid.length; row++) {
+    const node = grid[row][col];
+    node.checkedFromTop = true;
+
+    // If the node is not part of a path, just add it to the reason.
+    if (!node.visited) {
+      node.insideFromTop = isInside;
+      node.checkedFromTop = true;
+      currentRegion.push(node);
+      continue;
+    }
+
+    // When coming from the top, these are the "opening" boundaries of a new section.
+    if (["-", "F", "7", "S"].indexOf(node.s) >= 0) {
+      regionStack.push(currentRegion);
+      isInside = !isInside;
+      continue;
+    }
+
+    // When coming from the top, these are the "closing boundaries" of a new section.
+    if (["-", "L", "J", "S"].indexOf(node.s) >= 0) {
+      const r = regionStack.pop();
+      if (!r) throw Error("weird stack");
+      currentRegion = r;
+      isInside = !isInside;
+      continue;
+    }
+  }
+};
+
+const fillAllFromTop = (grid: GraphNode[][]) => {
   for (let col = 0; col < grid[0].length; col++) {
-    let currentRegion: GraphNode[] = [];
-    let isCurrentlyInside = false;
-
-    for (let row = 0; row < grid.length; row++) {
-      const node = grid[row][col];
-
-      const isBoundaryNode = ["-", "S", "7", "F"].indexOf(node.s) >= 0;
-      if (isBoundaryNode) {
-        currentRegion.forEach((node) => {
-          node.insideFromTop = isCurrentlyInside;
-        });
-
-        isCurrentlyInside = !isCurrentlyInside;
-        currentRegion = [];
-      } else if (!node.visited) {
-        currentRegion.push(node);
-      }
-    }
-
-    // Flush out the remaining region.
-    currentRegion.forEach((node) => {
-      node.insideFromTop = isCurrentlyInside;
-    });
-  }
-};
-
-const fillFromBottom = (grid: GraphNode[][]) => {};
-
-// Fill from side to side, setting node.insideHorizontal.
-const fillFromLeft = (grid: GraphNode[][]) => {
-  for (let row = 0; row < grid.length; row++) {
-    let currentRegion: GraphNode[] = [];
-    let isCurrentlyInside = false;
-
-    for (let col = 0; col < grid[row].length; col++) {
-      const node = grid[row][col];
-
-      // const openBoundaries = ["|", ]
-
-      const isBoundaryNode = ["|", "L", "F", "S"].indexOf(node.s) >= 0;
-
-      if (isBoundaryNode) {
-        currentRegion.forEach((node) => {
-          node.insideFromLeft = isCurrentlyInside;
-          node.insideHorizontalChecked = true;
-        });
-
-        isCurrentlyInside = !isCurrentlyInside;
-        currentRegion = [];
-      } else if (!node.visited) {
-        currentRegion.push(node);
-      }
-    }
-
-    // Flush out the remaining region.
-    currentRegion.forEach((node) => {
-      node.insideFromLeft = isCurrentlyInside;
-      node.insideHorizontalChecked = true;
-    });
-  }
-};
-
-const fillFromRight = (grid: GraphNode[][]) => {
-  for (let row = 0; row < grid.length; row++) {
-    let currentRegion: GraphNode[] = [];
-    let isCurrentlyInside = false;
-
-    for (let col = grid[row].length - 1; col >= 0; col--) {
-      const node = grid[row][col];
-
-      const isBoundaryNode = ["|", "J", "7", "S"].indexOf(node.s) >= 0;
-
-      if (isBoundaryNode) {
-        currentRegion.forEach((node) => {
-          node.insideFromRight = isCurrentlyInside;
-          node.insideHorizontalChecked = true;
-        });
-
-        isCurrentlyInside = !isCurrentlyInside;
-        currentRegion = [];
-      } else if (!node.visited) {
-        currentRegion.push(node);
-      }
-    }
-
-    // Flush out the remaining region.
-    console.log(currentRegion);
-    console.log(isCurrentlyInside);
-
-    currentRegion.forEach((node) => {
-      node.insideFromRight = isCurrentlyInside;
-      node.insideHorizontalChecked = true;
-    });
+    fillColFromTop(grid, col);
   }
 };
 
@@ -364,30 +358,16 @@ const { startNode, nodeGrid } = buildNodeGrid();
 connectGridInLoop(nodeGrid, startNode);
 printGrid(nodeGrid);
 
-fillFromLeft(nodeGrid);
+console.log(" ");
+
+fillAllFromLeft(nodeGrid);
 printGrid(nodeGrid);
 
-fillFromRight(nodeGrid);
-printGrid(nodeGrid);
+console.log(" ");
 
-// fillFromTop(nodeGrid);
+// fillColFromTop(nodeGrid, 3);
+// fillColFromTop(nodeGrid, 4);
+// fillColFromTop(nodeGrid, 5);
+
+// fillAllFromTop(nodeGrid);
 // printGrid(nodeGrid);
-
-// fillFromBottom(nodeGrid);
-// printGrid(nodeGrid);
-
-// console.log();
-// fillGridFromEdges(nodeGrid);
-// printGrid(nodeGrid);
-
-// let count = 0;
-// for (let row = 0; row < nodeGrid.length; row++) {
-//   for (let col = 0; col < nodeGrid[row].length; col++) {
-//     const node = nodeGrid[row][col];
-//     if (!node.visited && !node.filled) {
-//       count++;
-//     }
-//   }
-// }
-// console.log(count);
-// console.log(nodeGrid[0].length, nodeGrid.length);
