@@ -1,6 +1,6 @@
 import { getInput } from "./utils";
 
-const input = getInput(__filename, true);
+const input = getInput(__filename, false);
 
 type Pattern = string[];
 
@@ -132,34 +132,59 @@ const processPattern = (inputPattern: Pattern, i: number): number | null => {
   const vindex0 = getVerticalIndex(inputPattern);
   const hindex0 = getHorizontalIndex(inputPattern);
 
+  let maybeHindex: number | null = null;
+  let maybeVindex: number | null = null;
+
   // Iterate through every character in the matrix, attempting to swap the character
   // and see if that produces a horizontal or a vertical reflection.
-  for (let col = 0; col < inputPattern[0].length; col++) {
-    for (let row = 0; row < inputPattern.length; row++) {
-      if (i === 12) {
-        console.log("swapping row", row, "col", col);
-      }
-
+  for (let row = 0; row < inputPattern.length; row++) {
+    for (let col = 0; col < inputPattern[0].length; col++) {
       const newPattern = [...inputPattern];
 
       const char = newPattern[row][col];
-
       const newRow = newPattern[row].split("");
+      const newChar = char === "#" ? "." : "#";
 
-      newRow[col] = char === "#" ? "." : "#";
+      newRow[col] = newChar;
       newPattern[row] = newRow.join("");
 
       const vindex = getVerticalIndex(newPattern);
       if (typeof vindex === "number") {
-        return vindex;
+        // console.log(inputPattern);
+        // console.log(newPattern);
+        // console.log(
+        //   `Found a vindex by swapping (${row}, ${col}) from ${char} to ${newChar}`
+        // );
+
+        if (vindex !== vindex0) {
+          return vindex;
+        }
+        maybeVindex = vindex;
       }
 
       const hindex = getHorizontalIndex(newPattern);
       if (typeof hindex === "number") {
-        return 100 * hindex;
+        if (hindex !== hindex0) return 100 * hindex;
+        maybeHindex = hindex;
       }
     }
   }
+
+  console.log(
+    "NO NEW REFLECTIONS FOUND",
+    i,
+    "maybeVindex",
+    maybeVindex,
+    "vindex0",
+    vindex0,
+    "maybeHindex",
+    maybeHindex,
+    "hindex0",
+    hindex0
+  );
+
+  if (maybeVindex) return maybeVindex;
+  if (maybeHindex) return 100 * maybeHindex;
 
   return null;
 };
@@ -178,6 +203,7 @@ const partTwo = () => {
     sum += result;
   }
 
+  console.log("RESULLT:");
   console.log(sum);
 };
 
