@@ -104,28 +104,30 @@ const getHorizontalIndex = (pattern: Pattern): number | null => {
 
 const patterns = parsePatterns();
 
-let sum = 0;
+const partOne = () => {
+  let sum = 0;
 
-for (let i = 0; i < patterns.length; i++) {
-  const pattern = patterns[i];
-  const vindex = getVerticalIndex(pattern);
-  if (typeof vindex === "number") {
-    console.log("pattern", i, "vindex", vindex);
-    sum += vindex;
-    continue;
+  for (let i = 0; i < patterns.length; i++) {
+    const pattern = patterns[i];
+    const vindex = getVerticalIndex(pattern);
+    if (typeof vindex === "number") {
+      sum += vindex;
+      continue;
+    }
+
+    const hindex = getHorizontalIndex(pattern);
+    if (typeof hindex === "number") {
+      sum = sum + 100 * hindex;
+    }
+
+    if (typeof vindex !== "number" && typeof hindex !== "number") {
+      console.log(pattern);
+      console.log("pattern index", i);
+      throw Error("no match for pattern");
+    }
   }
 
-  const hindex = getHorizontalIndex(pattern);
-  if (typeof hindex === "number") {
-    console.log("pattern", i, "vindex", vindex, "hindex", hindex);
-    sum = sum + 100 * hindex;
-  }
+  console.log(sum);
+};
 
-  if (typeof vindex !== "number" && typeof hindex !== "number") {
-    console.log(pattern);
-    console.log("pattern index", i);
-    throw Error("no match for pattern");
-  }
-}
-
-console.log(sum);
+partOne();
