@@ -1,6 +1,6 @@
 import { getInput } from "./utils";
 
-const input = getInput(__filename, false);
+const input = getInput(__filename, true);
 
 type Pattern = string[];
 
@@ -81,8 +81,6 @@ const getHorizontalIndex = (pattern: Pattern): number | null => {
     let allRowsMirroredAtIndex = true;
     for (let col = 0; col < pattern[row].length; col++) {
       const line = getVerticalAsString(pattern, col);
-      // console.log();
-      // console.log(line);
 
       const first = line.substring(0, row);
       const second = line.substring(row);
@@ -130,4 +128,58 @@ const partOne = () => {
   console.log(sum);
 };
 
-partOne();
+const processPattern = (inputPattern: Pattern, i: number): number | null => {
+  const vindex0 = getVerticalIndex(inputPattern);
+  const hindex0 = getHorizontalIndex(inputPattern);
+
+  // Iterate through every character in the matrix, attempting to swap the character
+  // and see if that produces a horizontal or a vertical reflection.
+  for (let col = 0; col < inputPattern[0].length; col++) {
+    for (let row = 0; row < inputPattern.length; row++) {
+      if (i === 12) {
+        console.log("swapping row", row, "col", col);
+      }
+
+      const newPattern = [...inputPattern];
+
+      const char = newPattern[row][col];
+
+      const newRow = newPattern[row].split("");
+
+      newRow[col] = char === "#" ? "." : "#";
+      newPattern[row] = newRow.join("");
+
+      const vindex = getVerticalIndex(newPattern);
+      if (typeof vindex === "number") {
+        return vindex;
+      }
+
+      const hindex = getHorizontalIndex(newPattern);
+      if (typeof hindex === "number") {
+        return 100 * hindex;
+      }
+    }
+  }
+
+  return null;
+};
+
+const partTwo = () => {
+  let sum = 0;
+
+  for (let i = 0; i < patterns.length; i++) {
+    const pattern = patterns[i];
+    const result = processPattern(pattern, i);
+
+    if (typeof result !== "number") {
+      throw Error("could not figure out pattern");
+    }
+
+    sum += result;
+  }
+
+  console.log(sum);
+};
+
+// partOne();
+partTwo();
