@@ -65,10 +65,9 @@ const getVerticalIndex = (pattern: Pattern): number | null => {
 };
 
 const patterns = parsePatterns();
-console.log(getVerticalIndex(patterns[0]));
-console.log(getVerticalIndex(patterns[1]));
 
-// patterns.forEach((pattern) => {
-//   console.log(pattern);
-// });
-// console.log(patterns.length);
+for (let i = 0; i < patterns.length; i++) {
+  const pattern = patterns[i];
+  const vindex = getVerticalIndex(pattern);
+  console.log("pattern", i, "vindex", vindex);
+}
