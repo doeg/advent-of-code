@@ -1,0 +1,88 @@
+
+> advent-of-code-2023@0.0.0 start
+> tsx watch 2023-08-2
+
+{
+  JHA: [
+    'FMP', 'BSP', 'RSM', 'JGJ', 'RPK', 'CMR', 'RLS',
+    'NVC', 'KRJ', 'NHX', 'RGS', 'JKJ', 'XBB', 'VGM',
+    'JCV', 'SVP', 'BLN', 'SHS', 'PRD', 'FVB', 'VTF',
+    'MQK', 'RVM', 'KDJ', 'NHM', 'FTG', 'MBN', 'BHC',
+    'RML', 'VND', 'RPD', 'VLG', 'PXN', 'BQR', 'PHJ',
+    'VCG', 'VVS', 'MDR', 'GLS', 'XRR', 'SHX', 'MDX',
+    'XDF', 'BFX', 'SNC', 'KNN', 'LSJ', 'HFN', 'VHM',
+    'TSJ', 'RCD', 'CGB', 'TCF', 'CGR', 'CDC', 'TBQ',
+    'MHN', 'RSX', 'LPQ', 'LKR', 'TLD', 'VHQ', 'CLC',
+    'DVR', 'NQB', 'VRK', 'HMJ', 'TVM', 'MJB', 'LLP',
+    'PRT', 'SHD', 'QVF', 'JMR', 'SDD', 'SBD', 'VBQ',
+    'FLT', 'SCD'
+  ],
+  NCA: [
+    'SXC', 'QRX', 'RQX', 'KSX', 'SRM',
+    'LFG', 'CSD', 'TMH', 'RCJ', 'RXK',
+    'XJK', 'BFF', 'NMR', 'PQF', 'HNL',
+    'LSR', 'CMJ', 'QVQ', 'TDM', 'QVP',
+    'HCL', 'MRL', 'LQB', 'VJP', 'CHG',
+    'NDL', 'SDF', 'QBR', 'XMS', 'XCX',
+    'TCN', 'KBD', 'RRL', 'MMD', 'KHH',
+    'BFS', 'CHN', 'QPF', 'QLS', 'THM',
+    'MNJ', 'PQV', 'DQX', 'CRT', 'MJG',
+    'LVL', 'DDV'
+  ],
+  MMA: [
+    'KVC', 'NGT', 'FHF', 'RTX', 'VML', 'GKX', 'GTX',
+    'GFT', 'GCD', 'GCH', 'KXL', 'KNH', 'JPH', 'NGP',
+    'PLH', 'JVT', 'SNV', 'JQC', 'HGG', 'XKN', 'MPR',
+    'GNQ', 'DBF', 'LST', 'MJT', 'SVN', 'RJC', 'DJK',
+    'CVC', 'NNB', 'GRH', 'FNX', 'SJL', 'QCC', 'QGL',
+    'BQL', 'XFB', 'KGL', 'SDB', 'GXM', 'PBM', 'FQX',
+    'LSD', 'SFF', 'HMM', 'RDS', 'VMF', 'CKV', 'GND',
+    'TJC', 'LMS', 'SQH', 'FBV', 'BHL', 'PMP', 'SLN',
+    'QPB', 'JGS', 'RTM', 'FSJ', 'NCQ', 'KDS', 'CMT',
+    'KNX', 'FVT', 'QFT', 'HQJ', 'PQM', 'DHQ', 'SSQ',
+    'FRV', 'LHQ', 'XPR', 'KMT'
+  ],
+  AAA: [
+    'DFD', 'MVH', 'VKM', 'GJF', 'GLG', 'GXP',
+    'PCV', 'HTL', 'HKD', 'BLG', 'VTL', 'KLC',
+    'GSK', 'CFH', 'TJV', 'RDR', 'MHX', 'JRV',
+    'VHV', 'TLM', 'KXG', 'KHR', 'CBJ', 'LNH',
+    'QJM', 'QSP', 'QNM', 'RFQ', 'DSL', 'PGG',
+    'LCF', 'KCR', 'BRX', 'XGH', 'GKD', 'HHH',
+    'SXK', 'JXR', 'FLV', 'RBF', 'LFB', 'PKB',
+    'NDR', 'MKP', 'XRH', 'NML', 'KCM', 'JMD',
+    'DRV', 'NXM', 'KXK', 'KQR', 'FSL', 'SXG',
+    'NDN', 'QGN', 'SRG', 'GRS', 'LSM'
+  ],
+  TVA: [
+    'SHR', 'GQQ', 'THH', 'BGN', 'SMG', 'TVS', 'JNS',
+    'HSR', 'FFK', 'QXF', 'DGF', 'BDS', 'HXR', 'DHJ',
+    'RXQ', 'QSL', 'PKP', 'MNQ', 'XJX', 'SBC', 'VLK',
+    'CQJ', 'PGL', 'VLR', 'MFR', 'QBQ', 'RPH', 'RLQ',
+    'RBP', 'TDQ', 'FKG', 'GBH', 'HJM', 'HDD', 'GMH',
+    'MLH', 'MRQ', 'QHV', 'LVF', 'KXD', 'RSV', 'NCT',
+    'LKB', 'PNF', 'FNV', 'CSR', 'HKT', 'LRL', 'TGR',
+    'TQV', 'HCP', 'QJH', 'PCX', 'VRX', 'SJH', 'XKM',
+    'RKV', 'VKF', 'BJV', 'LQM', 'GMG', 'SRQ', 'HXM',
+    'KSN', 'XGB', 'TJJ', 'QCT', 'GCG', 'KFS', 'GFF',
+    'PGP', 'JJB', 'DCH'
+  ],
+  DTA: [
+    'LBP', 'MKR', 'JPG', 'KLN', 'NLS', 'BTD',
+    'CRF', 'BRS', 'SRC', 'TPK', 'SRF', 'DLG',
+    'VVJ', 'VJR', 'QFH', 'SJN', 'KVN', 'SHM',
+    'BMN', 'MPG', 'BKR', 'KSQ', 'DBG', 'MLN',
+    'HVX', 'NRQ', 'PGT', 'PCG', 'XFQ', 'NCD',
+    'GQJ', 'RGT', 'MJR', 'XRV', 'JFX', 'VJC',
+    'NXF', 'NCG', 'BRK', 'CNQ', 'FRL', 'LQC',
+    'CBS', 'RPQ', 'TXH', 'JGL', 'PVQ', 'TFG',
+    'PKD', 'NFJ', 'CHM', 'NXR', 'XGT', 'RFH'
+  ]
+}
+done
+79
+47
+74
+59
+73
+54
