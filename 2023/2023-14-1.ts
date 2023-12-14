@@ -1,7 +1,7 @@
 import { getInput } from "./utils";
 
 const parseGrid = (): string[][] => {
-  const input = getInput(__filename, true);
+  const input = getInput(__filename, false);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -47,30 +47,46 @@ const rotateCW = (grid: string[][]): string[][] => {
 
 const findEmptySpot = (gridRow: string[], col: number): number => {
   const cell = gridRow[col];
+  if (cell !== "O") throw Error("Cannot move cell that isn't a round rock");
 
-  let nextCol = col;
-  for (let i = col; i < gridRow.length; i++) {
-    const nextCell = gridRow[i];
-    if (nextCell === "#" || nextCell === "O") {
-      return nextCol;
-    }
-    nextCol += i;
+  console.log(
+    `Finding empty spot for ${cell} at ${col} in ${gridRow.join("")}`
+  );
+  let newCol = col;
+  let nextCol = col + 1;
+
+  while (nextCol < gridRow.length) {
+    const nextCell = gridRow[nextCol];
+    if (nextCell === "O" || nextCell === "#") break;
+    newCol++;
+    nextCol++;
   }
-  //   console.log(
-  //     `Finding empty spot for ${cell} at ${col} in ${gridRow.join("")}`
-  //   );
+
+  // let nextCol = col;
+  // for (let i = col; i < gridRow.length; i++) {
+  //   const nextCell = gridRow[i];
+  //   if (nextCell === "#" || nextCell === "O") {
+  //     return nextCol;
+  //   }
+  //   nextCol += i;
+  // }
 
   //   for (let i = gridRow.length - 1; i >= col; i--) {
   //     const spot = gridRow[i];
   //     if (spot === ".") return i;
   //   }
-  return nextCol;
+  return newCol;
 };
 
 const tiltNorth = (grid: string[][]): string[][] => {
   // Rotate the grid CW so now all rocks are rolling to the right (east)
   const rotatedGrid = rotateCW(grid);
+
   console.log();
+  console.log("ROTATED");
+  printGrid(rotatedGrid);
+  console.log();
+
   // Make a copy of the grid and prepopulate the rows to make it
   // a bit easier to fill.
   const tiltedGrid: string[][] = [];
@@ -81,8 +97,10 @@ const tiltNorth = (grid: string[][]): string[][] => {
   // Go row-by-row in the rotated grid.
   for (let row = 0; row < rotatedGrid.length; row++) {
     const gridRow = rotatedGrid[row];
-    console.log(gridRow.join(""));
 
+    console.log("");
+    console.log("");
+    console.log("ROW", row);
     for (let col = gridRow.length - 1; col >= 0; col--) {
       // We're moving the item from the original grid, not the new one.
       const cell = gridRow[col];
@@ -91,14 +109,13 @@ const tiltNorth = (grid: string[][]): string[][] => {
       if (cell === "." || cell === "#") continue;
 
       // Use the row from the NEW grid
-      console.log("");
-
       const nextCol = findEmptySpot(tiltedGrid[row], col);
-      tiltedGrid[row][nextCol] = cell;
+      console.log(`Moving ${cell} from ${col} to ${nextCol}`);
       tiltedGrid[row][col] = ".";
+      tiltedGrid[row][nextCol] = cell;
 
-      console.log("col", col, "->", nextCol);
-      console.log(tiltedGrid[row].join(""));
+      // console.log(tiltedGrid[row].join(""));
+      // console.log();
     }
   }
 
@@ -114,6 +131,21 @@ const tiltNorth = (grid: string[][]): string[][] => {
 //   ])
 // );
 
+const duplicateGrid = (grid: string[][]): string[][] => {
+  return grid.map((row) => [...row]);
+};
+
+const getScore = (grid: string[][]): number => {
+  let score = 0;
+  for (let row = 0; row < grid.length; row++) {
+    const rowScore = grid.length - row;
+    const numRocksOnRow = grid[row].filter((c) => c === "O").length;
+    console.log(row, numRocksOnRow, rowScore);
+    score += rowScore * numRocksOnRow;
+  }
+  return score;
+};
+
 const grid = parseGrid();
 printGrid(grid);
 
@@ -123,10 +155,13 @@ console.log("");
 // printGrid(rotated);
 
 const tiltedNorth = tiltNorth(grid);
+console.log("TILTED NORTH");
 printGrid(tiltedNorth);
 
 console.log();
 console.log("FINAL");
 console.log();
-const final = rotateCW(rotateCW(rotateCW(tiltedNorth)));
+const final = rotateCW(rotateCW(rotateCW(duplicateGrid(tiltedNorth))));
 printGrid(final);
+
+console.log(getScore(final));
