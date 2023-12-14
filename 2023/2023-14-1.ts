@@ -78,7 +78,7 @@ const findEmptySpot = (gridRow: string[], col: number): number => {
   return newCol;
 };
 
-const rollLeft = (rotatedGrid: string[][]): string[][] => {
+const rollRight = (rotatedGrid: string[][]): string[][] => {
   // Make a copy of the grid and prepopulate the rows to make it
   // a bit easier to fill.
   const tiltedGrid: string[][] = [];
@@ -114,12 +114,6 @@ const rollLeft = (rotatedGrid: string[][]): string[][] => {
   return tiltedGrid;
 };
 
-const tiltNorth = (grid: string[][]): string[][] => {
-  // Rotate the grid CW so now all rocks are rolling to the right (east)
-  const rotatedGrid = rotateCW(grid);
-  return rotateCW(rotateCW(rotateCW(rollLeft(rotatedGrid))));
-};
-
 // console.log(
 //   rotateCW([
 //     ["1", "2", "3", "W"],
@@ -144,23 +138,28 @@ const getScore = (grid: string[][]): number => {
   return score;
 };
 
+const tiltNorth = (grid: string[][]): string[][] => {
+  // Rotate the grid CW so now all rocks are rolling to the right (east)
+  return rotateCW(rotateCW(rotateCW(rollRight(rotateCW(grid)))));
+};
+
+const tiltWest = (grid: string[][]): string[][] => {
+  return rotateCW(rotateCW(rollRight(rotateCW(rotateCW(grid)))));
+};
+
+const tiltSouth = (grid: string[][]): string[][] => {
+  return rotateCW(rollRight(rotateCW(rotateCW(rotateCW(grid)))));
+};
+
+const tiltEast = (grid: string[][]): string[][] => {
+  return rollRight(grid);
+};
+
 const partOne = () => {
   const grid = parseGrid();
   printGrid(grid);
-
   console.log("");
-
-  // const rotated = rotateCW(grid);
-  // printGrid(rotated);
-
   const final = tiltNorth(grid);
-  // console.log("TILTED NORTH");
-  // printGrid(tiltedNorth);
-
-  // console.log();
-  // console.log("FINAL");
-  // console.log();
-  // const final = rotateCW(rotateCW(rotateCW(duplicateGrid(tiltedNorth))));
   printGrid(final);
 
   console.log(getScore(final));
@@ -170,8 +169,6 @@ const partTwo = () => {
   const grid = parseGrid();
   const cycles = 3;
 
-  printGrid(grid);
-
   let nextGrid = grid;
 
   // Each cycle tilts the platform four times so that the rounded rocks roll north,
@@ -180,21 +177,41 @@ const partTwo = () => {
   // After one cycle, the platform will have finished rolling the rounded rocks in
   // those four directions in that order.
   for (let cycle = 1; cycle <= cycles; cycle++) {
-    console.log();
+    // console.log();
     console.log();
     console.log("CYCLE", cycle);
+    // printGrid(grid);
 
-    // North
-    // if (cycle % 1 === 0) {
-    // console.log("tilting north");
-    nextGrid = tiltNorth(nextGrid);
-    nextGrid = rotateCW(rotateCW(rollLeft(rotateCW(rotateCW(nextGrid)))));
-    nextGrid = rollLeft(nextGrid);
+    // nextGrid = tiltNorth(nextGrid);
+    // nextGrid = rotateCW(rotateCW(rollRight(rotateCW(rotateCW(nextGrid)))));
+    // nextGrid = rollRight(nextGrid);
     // nextGrid =
     // }
 
-    printGrid(nextGrid);
+    const tiltedNorth = tiltNorth(nextGrid);
+    // console.log();
+    // console.log("NORTH");
+    // printGrid(tiltedNorth);
+
+    const tiltedWest = tiltWest(tiltedNorth);
+    // console.log();
+    // console.log("WEST");
+    // printGrid(tiltedWest);
+
+    const tiltedSouth = tiltSouth(tiltedWest);
+    // console.log();
+    // console.log("SOUTH");
+    // printGrid(tiltedSouth);
+
+    const tiltedEast = tiltEast(tiltedSouth);
+    // console.log();
+    // console.log("EAST");
+    printGrid(tiltedEast);
+
+    nextGrid = tiltedEast;
   }
+
+  console.log(getScore(nextGrid));
 };
 
 // partOne();
