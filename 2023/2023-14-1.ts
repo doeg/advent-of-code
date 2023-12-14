@@ -1,7 +1,7 @@
 import { getInput } from "./utils";
 
 const parseGrid = (): string[][] => {
-  const input = getInput(__filename, true);
+  const input = getInput(__filename, false);
   const lines = input.split("\n");
 
   const grid: string[][] = [];
@@ -167,16 +167,21 @@ const partOne = () => {
 
 const partTwo = () => {
   const grid = parseGrid();
-  const cycles = 3;
+
+  // ((1000000000-116)%22)-1+95
+  // (( total # of cycles - offset of beginning of cycle) % (length of cycle + 1)) - 1 + 95
+  const cycles = 98;
 
   let nextGrid = grid;
+
+  const patterns: string[] = [];
 
   // Each cycle tilts the platform four times so that the rounded rocks roll north,
   // then west, then south, then east. After each tilt, the rounded rocks roll as
   // far as they can before the platform tilts in the next direction.
   // After one cycle, the platform will have finished rolling the rounded rocks in
   // those four directions in that order.
-  for (let cycle = 1; cycle <= cycles; cycle++) {
+  for (let cycle = 0; cycle < cycles; cycle++) {
     // console.log();
     console.log();
     console.log("CYCLE", cycle);
@@ -206,9 +211,21 @@ const partTwo = () => {
     const tiltedEast = tiltEast(tiltedSouth);
     // console.log();
     // console.log("EAST");
-    printGrid(tiltedEast);
+    // printGrid(tiltedEast);
 
     nextGrid = tiltedEast;
+
+    const pattern = nextGrid.reduce((acc, line) => {
+      acc = `${acc}${line.join("")}`;
+      return acc;
+    }, "");
+
+    console.log("Score:", getScore(nextGrid));
+
+    const matchingPattern = patterns.findIndex((p) => p === pattern);
+    if (matchingPattern >= 0)
+      console.log("cycle", cycle, "matching pattern", matchingPattern);
+    patterns.push(pattern);
   }
 
   console.log(getScore(nextGrid));
