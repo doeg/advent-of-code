@@ -19,11 +19,7 @@ const printGrid = (grid: string[][]) => {
 };
 
 const rotateCW = (grid: string[][]): string[][] => {
-  const numberOfRows = grid.length;
-  const maxRow = numberOfRows - 1;
-
   const numberOfCols = grid[0].length;
-  const maxCol = numberOfCols - 1;
 
   // Prepopulate the rotated grid with the number of rows
   // that is equivalent ot the length of a given column
@@ -37,97 +33,100 @@ const rotateCW = (grid: string[][]): string[][] => {
   for (let row = 0; row < grid.length; row++) {
     for (let col = 0; col < grid[row].length; col++) {
       const cell = grid[row][col];
-
+      if (!cell) {
+        console.log("no??");
+      }
       const rotatedRow = col;
-      const rotatedCol = numberOfCols - row;
-
-      console.log(`${cell} -> ${row},${col} -> ${rotatedRow},${rotatedCol}`);
-
+      const rotatedCol = numberOfCols - row - 1;
       rotated[rotatedRow][rotatedCol] = cell;
     }
   }
 
-  //   for (let row = 0; row < grid.length; row++) {
-  //     // Get the row from the original grid
-  //     const gridRow = grid[row];
-
-  //     const newCol = lastCol - row;
-
-  //     for (let i = 0; i < gridRow.length; i++) {
-  //       const cell = gridRow[i];
-
-  //       for (let j = 0; j < grid.length; j++) {
-  //         rotated[j][newCol] = cell;
-  //       }
-  //     }
-  //   }
-
   return rotated;
 };
 
-const tiltNorth = (grid: string[][]): string[][] => {
-  // Make a copy of the grid
-  const tiltedGrid: string[][] = [];
+const findEmptySpot = (gridRow: string[], col: number): number => {
+  const cell = gridRow[col];
 
-  for (let row = 0; row < grid.length; row++) {
-    // tiltedGrid[row] = [];
-    tiltedGrid[row] = [...grid[row]];
-
-    // Nothing on row 0 can roll anywhere
-    if (row === 0) {
-      tiltedGrid[0] = [...grid[0]];
-      continue;
+  let nextCol = col;
+  for (let i = col; i < gridRow.length; i++) {
+    const nextCell = gridRow[i];
+    if (nextCell === "#" || nextCell === "O") {
+      return nextCol;
     }
+    nextCol += i;
+  }
+  //   console.log(
+  //     `Finding empty spot for ${cell} at ${col} in ${gridRow.join("")}`
+  //   );
 
-    for (let col = 0; col < grid[row].length; col++) {
-      const currentCell = tiltedGrid[row][col];
-      const northernCell = tiltedGrid[row - 1][col];
+  //   for (let i = gridRow.length - 1; i >= col; i--) {
+  //     const spot = gridRow[i];
+  //     if (spot === ".") return i;
+  //   }
+  return nextCol;
+};
 
-      // If the current cell is a square rock or empty ground,
-      // those don't move so it's a no-op.
-      if (currentCell === "#" || currentCell === ".") {
-        tiltedGrid[row][col] = currentCell;
-        continue;
-      }
+const tiltNorth = (grid: string[][]): string[][] => {
+  // Rotate the grid CW so now all rocks are rolling to the right (east)
+  const rotatedGrid = rotateCW(grid);
+  console.log();
+  // Make a copy of the grid and prepopulate the rows to make it
+  // a bit easier to fill.
+  const tiltedGrid: string[][] = [];
+  for (let i = 0; i < rotatedGrid.length; i++) {
+    tiltedGrid[i] = rotatedGrid[i];
+  }
 
-      if (currentCell !== "O") {
-        console.log(currentCell, row, col);
-        printGrid(tiltedGrid);
-        throw Error("Invalid character");
-      }
+  // Go row-by-row in the rotated grid.
+  for (let row = 0; row < rotatedGrid.length; row++) {
+    const gridRow = rotatedGrid[row];
+    console.log(gridRow.join(""));
 
-      // The current cell, a rounded rock, is blocked from moving north, so we leave it
-      // where it is.
-      if (northernCell === "O" || northernCell === "#") {
-        tiltedGrid[row][col] = currentCell;
-        continue;
-      }
+    for (let col = gridRow.length - 1; col >= 0; col--) {
+      // We're moving the item from the original grid, not the new one.
+      const cell = gridRow[col];
 
-      console.log("Rock at", row, ",", col, "can roll north");
-      tiltedGrid[row - 1][col] = currentCell;
+      // Empty spaces + square rocks don't move.
+      if (cell === "." || cell === "#") continue;
+
+      // Use the row from the NEW grid
+      console.log("");
+
+      const nextCol = findEmptySpot(tiltedGrid[row], col);
+      tiltedGrid[row][nextCol] = cell;
       tiltedGrid[row][col] = ".";
+
+      console.log("col", col, "->", nextCol);
+      console.log(tiltedGrid[row].join(""));
     }
   }
 
   return tiltedGrid;
 };
 
+// console.log(
+//   rotateCW([
+//     ["1", "2", "3", "W"],
+//     ["4", "5", "6", "X"],
+//     ["7", "8", "9", "Y"],
+//     ["A", "B", "C", "Z"],
+//   ])
+// );
+
 const grid = parseGrid();
 printGrid(grid);
 
 console.log("");
 
-// const grid = [
-//   ["1", "2", "3", "X"],
-//   ["4", "5", "6", "Y"],
-//   ["7", "8", "9", "Z"],
-//   ["A", "B", "C", "W"],
-// ];
-// printGrid(grid);
-// console.log();
+// const rotated = rotateCW(grid);
+// printGrid(rotated);
 
-const rotated = rotateCW(grid);
-printGrid(rotated);
+const tiltedNorth = tiltNorth(grid);
+printGrid(tiltedNorth);
 
-// const tiltedNorth = tiltNorth(grid);
-// printGrid(tiltedNorth);
+console.log();
+console.log("FINAL");
+console.log();
+const final = rotateCW(rotateCW(rotateCW(tiltedNorth)));
+printGrid(final);
