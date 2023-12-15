@@ -62,8 +62,14 @@ const partTwo = () => {
     // the label of the lens on which the step operates.
     // The result of running the HASH algorithm on the label
     // indicates the correct box for that step.
-    const label = step.substring(0, 2);
-    const operation = step.substring(2, 3);
+
+    // const label = step.substring(0, 2);
+    const matches = /(\w+)(-|=)(\d+)?/.exec(step);
+    if (!matches || matches.length < 3) throw Error("invalid regex");
+
+    const label = matches[1];
+    const operation = matches[2];
+    const focalLength = matches.length === 4 ? parseInt(matches[3]) : null;
 
     // Track the lens label, which is used later on for calculating the focal length.
     lensLabels.add(label);
@@ -86,29 +92,36 @@ const partTwo = () => {
       // without changing their order, filling any space made by removing the indicated lens.
       // (If no lens in that box has the given label, nothing happens.)
       if (lensIndex >= 0) {
-        console.log(step, `Removing ${label} from box ${boxNumber}`);
+        // console.log(
+        //   step,
+        //   `Removing ${label} from box ${boxNumber} at index ${lensIndex}`
+        // );
         boxes[boxNumber].splice(lensIndex, 1);
       }
+      continue;
     }
 
     if (operation === "=") {
       // If the operation character is an equals sign (=),
       // it will be followed by a number indicating the focal length
       // of the lens that needs to go into the relevant box
-      const focalLength = parseInt(step.substring(3));
-      if (isNaN(focalLength)) throw Error("invalid focal length");
+
+      //   const focalLength = parseInt(step.substring(3));
+      if (!focalLength || isNaN(focalLength))
+        throw Error("invalid focal length");
 
       if (lensIndex >= 0) {
         boxes[boxNumber][lensIndex].focalLength = focalLength;
       } else {
         boxes[boxNumber].push({ label, focalLength });
       }
+      continue;
     }
 
     // logStep(step, boxes);
   }
 
-  //   console.log(boxes);
+  console.log(boxes);
 
   // Calculate the focusing power of all of the lenses
   let sum = 0;
