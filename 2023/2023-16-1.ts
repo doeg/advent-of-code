@@ -6,9 +6,21 @@ interface Position {
   col: number;
 }
 
+enum Direction {
+  UP = "UP",
+  DOWN = "DOWN",
+  LEFT = "LEFT",
+  RIGHT = "RIGHT",
+}
+interface Beam {
+  position: Position;
+  direction: Direction;
+}
+
 interface Node {
   s: string;
   energized: boolean;
+  beams: Beam[];
   position: Position;
 }
 
@@ -24,6 +36,7 @@ const parseGrid = () => {
         s: input[row][col],
         energized: false,
         position: { row, col },
+        beams: [],
       };
     }
   }
@@ -31,12 +44,69 @@ const parseGrid = () => {
   return grid;
 };
 
-const printGrid = (grid: Node[][]) => {
+const getDisplay = (cell: Node, printDirections: boolean): string => {
+  if (printDirections) {
+    if (cell.beams.length > 1 && cell.s === ".") {
+      return chalk.red(cell.beams.length);
+    }
+
+    if (cell.s === "|") {
+      return cell.beams.length ? chalk.yellow(cell.s) : chalk.magenta(cell.s);
+    }
+
+    if (cell.s === "-") {
+      return cell.beams.length ? chalk.yellow(cell.s) : chalk.magenta(cell.s);
+    }
+
+    if (cell.s === "/") {
+      return cell.beams.length ? chalk.yellow(cell.s) : chalk.cyan(cell.s);
+    }
+
+    if (cell.s === "\\") {
+      return cell.beams.length ? chalk.yellow(cell.s) : chalk.cyan(cell.s);
+    }
+
+    if (cell.beams.length === 1) {
+      const beam = cell.beams[0];
+      if (beam.direction === Direction.UP) return chalk.yellow("^");
+      if (beam.direction === Direction.DOWN) return chalk.yellow("v");
+      if (beam.direction === Direction.LEFT) return chalk.yellow("<");
+      if (beam.direction === Direction.RIGHT) return chalk.yellow(">");
+      return chalk.yellow(cell.beams.length);
+    }
+  }
+
+  if (cell.energized) {
+    return chalk.yellowBright("#");
+  }
+
+  if (cell.s === ".") {
+    return chalk.gray(cell.s);
+  }
+
+  if (cell.s === "/" || cell.s === "\\") {
+    return chalk.cyan(cell.s);
+  }
+
+  if (cell.s === "|" || cell.s === "-") {
+    return chalk.magenta(cell.s);
+  }
+
+  return cell.s;
+};
+
+const printGrid = (grid: Node[][], printDirections: boolean) => {
+  console.log();
+  let header = "  ";
+  for (let i = 0; i < grid[0].length; i++) {
+    header = `${header}${i}`;
+  }
+  console.log(header);
+
   for (let row = 0; row < grid.length; row++) {
-    let line = "";
+    let line = `${row} `;
     for (let col = 0; col < grid[row].length; col++) {
-      const cell = grid[row][col];
-      const char = cell.energized ? "#" : cell.s;
+      const char = getDisplay(grid[row][col], printDirections);
       line = `${line}${char}`;
     }
     console.log(line);
@@ -53,17 +123,6 @@ const duplicateGrid = (input: Node[][]): Node[][] => {
   }
   return grid;
 };
-
-enum Direction {
-  UP = "UP",
-  DOWN = "DOWN",
-  LEFT = "LEFT",
-  RIGHT = "RIGHT",
-}
-interface Beam {
-  position: Position;
-  direction: Direction;
-}
 
 const getNextPosition = (
   position: Position,
@@ -85,6 +144,7 @@ const getNextPosition = (
 };
 
 const energizeGrid = (input: Node[][]): Node[][] => {
+  let step = 0;
   const grid = duplicateGrid(input);
 
   // The beam enters in the top-left corner from the left
@@ -92,14 +152,29 @@ const energizeGrid = (input: Node[][]): Node[][] => {
   const initialBeam = {
     position: grid[0][0].position,
     direction: Direction.RIGHT,
+    id: 0,
   };
 
   const queue: Beam[] = [initialBeam];
 
   while (queue.length > 0) {
-    console.log(queue);
     const beam = queue.pop();
     if (!beam) throw Error("Weird queue");
+
+    // console.log();
+    // console.log();
+    // console.log("====");
+    // console.log("STEP", step++);
+    // printGrid(input, false);
+    // console.log();
+    // printGrid(grid, true);
+    // console.log();
+    // console.log("BEAM");
+    // console.log(beam);
+    // console.log();
+    // console.log("QUEUE");
+    // console.log(queue);
+    // console.log();
 
     // Skip any nodes that are out of bounds
     if (beam.position.row < 0) continue;
@@ -108,7 +183,17 @@ const energizeGrid = (input: Node[][]): Node[][] => {
     if (beam.position.col >= grid[0].length) continue;
 
     const node = grid[beam.position.row][beam.position.col];
+
+    if (node.s !== "." && node.beams.length >= 1000) {
+      // printGrid(input, false);
+      // printGrid(grid, false);
+      // printGrid(grid, true);
+      // throw Error("NOPE");
+      continue;
+    }
+
     node.energized = true;
+    node.beams.push(beam);
 
     const upPosition: Position = {
       row: beam.position.row - 1,
@@ -161,7 +246,7 @@ const energizeGrid = (input: Node[][]): Node[][] => {
         });
         continue;
       }
-      throw Error("nope nope");
+      // throw Error("nope nope");
     }
 
     if (node.s === "\\") {
@@ -201,34 +286,26 @@ const energizeGrid = (input: Node[][]): Node[][] => {
     // pointy ends are pointing. For instance, a rightward-moving beam that encounters
     // a | splitter would split into two beams: one that continues upward from
     // the splitter's column and one that continues downward from the splitter's column.
-    if (
-      node.s === "|" &&
-      (beam.direction === Direction.LEFT || beam.direction === Direction.RIGHT)
-    ) {
-      queue.push(
-        {
-          position: upPosition,
-          direction: Direction.UP,
-        },
-        {
-          position: downPosition,
-          direction: Direction.DOWN,
-        }
-      );
-      continue;
+    if (node.s === "|") {
+      if (
+        beam.direction === Direction.LEFT ||
+        beam.direction === Direction.RIGHT
+      ) {
+        queue.push(
+          {
+            position: upPosition,
+            direction: Direction.UP,
+          },
+          {
+            position: downPosition,
+            direction: Direction.DOWN,
+          }
+        );
+        continue;
+      }
     }
 
     if (node.s === "-") {
-      //   if (beam.direction === Direction.LEFT) {
-      //     queue.push({ position: leftPosition, direction: Direction.LEFT });
-      //     continue;
-      //   }
-
-      //   if (beam.direction === Direction.RIGHT) {
-      //     queue.push({ position: rightPosition, direction: Direction.RIGHT });
-      //     continue;
-      //   }
-
       if (
         beam.direction === Direction.UP ||
         beam.direction === Direction.DOWN
@@ -245,41 +322,43 @@ const energizeGrid = (input: Node[][]): Node[][] => {
         );
         continue;
       }
-
-      throw Error("bad -");
     }
 
     // If the beam encounters empty space (.), it continues
     // in the same direction.
-    const nextPosition = getNextPosition(beam.position, beam.direction);
-    if (
-      node.s === "."
-      //   (node.s === "|" &&
-      //     (beam.direction === Direction.UP ||
-      //       beam.direction === Direction.DOWN)) ||
-      //   (node.s === "-" &&
-      //     (beam.direction === Direction.LEFT ||
-      //       beam.direction === Direction.RIGHT))
-    ) {
-      queue.push({ position: nextPosition, direction: beam.direction });
-      continue;
-    }
-
+    //
     // If the beam encounters the pointy end of a splitter (| or -),
     // the beam passes through the splitter as if the splitter were empty space.
     // For instance, a rightward-moving beam that encounters a - splitter would
     //  continue in the same direction.
-
-    // throw Error("This");
+    const nextPosition = getNextPosition(beam.position, beam.direction);
+    queue.push({ position: nextPosition, direction: beam.direction });
   }
 
   return grid;
 };
 
+const countEnergized = (grid: Node[][]): number => {
+  let sum = 0;
+  for (let row = 0; row < grid.length; row++) {
+    for (let col = 0; col < grid[row].length; col++) {
+      if (grid[row][col].energized) sum++;
+    }
+  }
+  return sum;
+};
+
 const grid = parseGrid();
 printGrid(grid);
-console.log();
+// console.log();
 
 const egrid = energizeGrid(grid);
+
 console.log();
-printGrid(egrid);
+console.log();
+console.log();
+console.log("DONE!!!!!!!!!!!");
+printGrid(egrid, true);
+printGrid(egrid, false);
+
+console.log(countEnergized(egrid));
