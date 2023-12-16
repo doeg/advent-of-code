@@ -1,98 +1,66 @@
 import { getInput } from "./utils";
 import chalk from "chalk";
 
-const USE_EXAMPLE = true;
+const doesItFit = (template: string, index: number, size: number): boolean => {
+  if (index + size >= template.length) return false;
 
-// After the list of springs for a given row, the size of each
-// contiguous group of damaged springs is listed in the order
-// those groups appear in the row. This list always accounts
-// for every damaged spring, and each number is the entire size
-// of its contiguous group (that is, groups are always separated
-// by at least one operational spring: #### would always be 4, never 2,2).
+  const substr = template.substring(index, size);
+  const hasEmptySpace = substr.split("").findIndex((s) => s === ".") >= 0;
+  if (hasEmptySpace) return false;
 
-interface Line {
-  pattern: string[];
-  sizes: number[];
-}
-
-const parseInput = (): Line[] => {
-  const input = getInput(__filename, USE_EXAMPLE);
-  return input.split("\n").reduce((acc, line) => {
-    if (!line) return acc;
-
-    const [first, second] = line.split(" ");
-
-    const pattern = first.split("");
-    const sizes = second.split(",").map((i) => parseInt(i));
-    acc.push({ pattern, sizes });
-    return acc;
-  }, [] as Line[]);
+  return true;
 };
 
-interface Substring {
-  startIndex: number;
-  substring: string[];
-}
+console.log(doesItFit("???.###", 1, 0), true);
+console.log(doesItFit("???.###", 2, 0), true);
+console.log(doesItFit("???.###", 3, 0), true);
+console.log(doesItFit("???.###", 3, 1), true);
+console.log(doesItFit("???.###", 3, 4), true);
+console.log(doesItFit("???.###", 3, 5), false);
 
-const groupPattern = (pattern: string[]): Substring[] => {
-  const groups: Substring[] = [];
+console.log(doesItFit("???.###", 4, 0), false);
+console.log(doesItFit("???.###", 12, 0), false);
+// console.log();
 
-  let currentSubstring: string[] = [];
+const countArrangements = (template: string, groups: number[]) => {
+  let index = 0;
+  let groupIndex = 0;
 
-  for (let i = 0; i < pattern.length; i++) {
-    const char = pattern[i];
+  while (index < template.length) {
+    const group = groups[groupIndex];
+    const fitsAtIndex = doesItFit(template, index, group);
 
-    if (char === ".") {
-      if (currentSubstring.length) {
-        groups.push({
-          startIndex: i - currentSubstring.length,
-          substring: currentSubstring,
-        });
-        currentSubstring = [];
-      }
-    } else {
-      currentSubstring.push(char);
+    if (fitsAtIndex) {
+      console.log("it fits");
+      groupIndex++;
     }
+
+    index++;
   }
 
-  if (currentSubstring.length) {
-    groups.push({
-      startIndex: pattern.length - currentSubstring.length,
-      substring: currentSubstring,
-    });
-  }
-
-  return groups;
-};
-
-const input = parseInput();
-
-const permuteLine = (line: Line): number => {
-  const { pattern, sizes } = input[0];
-  const groups = groupPattern(pattern);
+  console.log();
+  console.log(template);
   console.log(groups);
+  console.log("group index", groupIndex);
 
-  // // After the list of springs for a given row, the size of each
-  // contiguous group of damaged springs is listed in the order
-  // those groups appear in the row.
-  const sizesBiggestToSmallest = [...sizes].sort().reverse();
-  console.log(sizesBiggestToSmallest);
-
-  for (let i = 0; i < sizesBiggestToSmallest.length; i++) {
-    const size = sizesBiggestToSmallest[i];
-    console.log();
-    console.log(size);
-    const potentialPositions: Substring[] = [];
-
-    for (let g = 0; g < groups.length; g++) {
-      const group = groups[g];
-      if (size <= group.substring.length) potentialPositions.push(group);
-    }
-
-    console.log(potentialPositions);
-  }
-
-  return -1;
+  return 0;
 };
 
-permuteLine(input[0]);
+const partOne = () => {
+  const input = getInput(__filename, true);
+  let lines = input.split("\n").filter((l) => !!l);
+  lines = [lines[0]]; // FIXME remove this
+
+  let sum = lines.reduce((acc, line) => {
+    const parts = line.split(" ");
+    const template = parts[0];
+    const groups = parts[1].split(",").map((i) => parseInt(i));
+
+    return acc + countArrangements(template, groups);
+  }, 0);
+
+  console.log();
+  console.log(sum);
+};
+
+partOne();
