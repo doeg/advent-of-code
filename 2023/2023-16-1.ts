@@ -118,7 +118,10 @@ const duplicateGrid = (input: Node[][]): Node[][] => {
   for (let row = 0; row < input.length; row++) {
     grid[row] = [];
     for (let col = 0; col < input[row].length; col++) {
-      grid[row][col] = { ...input[row][col] };
+      grid[row][col] = {
+        ...input[row][col],
+        beams: [],
+      };
     }
   }
   return grid;
@@ -143,17 +146,11 @@ const getNextPosition = (
   }
 };
 
-const energizeGrid = (input: Node[][]): Node[][] => {
+const MAX_CYCLES = 1200;
+
+const energizeGrid = (input: Node[][], initialBeam: Beam): Node[][] => {
   let step = 0;
   const grid = duplicateGrid(input);
-
-  // The beam enters in the top-left corner from the left
-  // and heading to the right.
-  const initialBeam = {
-    position: grid[0][0].position,
-    direction: Direction.RIGHT,
-    id: 0,
-  };
 
   const queue: Beam[] = [initialBeam];
 
@@ -173,7 +170,7 @@ const energizeGrid = (input: Node[][]): Node[][] => {
       throw Error("nope");
     }
 
-    if (node.beams.length >= 1300) {
+    if (node.beams.length >= MAX_CYCLES) {
       continue;
     }
 
@@ -333,17 +330,93 @@ const countEnergized = (grid: Node[][]): number => {
   return sum;
 };
 
-const grid = parseGrid();
-printGrid(grid);
-// console.log();
+const partOne = () => {
+  const grid = parseGrid();
+  printGrid(grid);
+  // console.log();
 
-const egrid = energizeGrid(grid);
+  // The beam enters in the top-left corner from the left
+  // and heading to the right.
+  const initialBeam = {
+    position: grid[0][0].position,
+    direction: Direction.RIGHT,
+    id: 0,
+  };
+  const egrid = energizeGrid(grid, initialBeam);
 
-console.log();
-console.log();
-console.log();
-console.log("DONE!!!!!!!!!!!");
-printGrid(egrid, true);
-printGrid(egrid, false);
+  console.log();
+  console.log();
+  console.log();
+  console.log("DONE!!!!!!!!!!!");
+  printGrid(egrid, true);
+  printGrid(egrid, false);
 
-console.log(countEnergized(egrid));
+  console.log(countEnergized(egrid));
+};
+
+const partTwo = () => {
+  const grid = parseGrid();
+
+  let maxEnergized = 0;
+
+  // Top to bottom, left edge, going right
+  for (let row = 0; row < grid.length; row++) {
+    const beam = {
+      position: { row, col: 0 },
+      direction: Direction.RIGHT,
+    };
+    const e = countEnergized(energizeGrid(grid, beam));
+
+    maxEnergized = Math.max(maxEnergized, e);
+    console.log(beam, e, maxEnergized);
+  }
+
+  // Top to bottom, right edge, going left
+  for (let row = 0; row < grid.length; row++) {
+    const beam = {
+      position: { row, col: grid[0].length - 1 },
+      direction: Direction.LEFT,
+    };
+    const e = countEnergized(energizeGrid(grid, beam));
+
+    maxEnergized = Math.max(maxEnergized, e);
+    console.log(beam, e, maxEnergized);
+  }
+
+  // Left to right, top edge, going down
+  for (let col = 0; col < grid[0].length; col++) {
+    const beam = {
+      position: { row: 0, col },
+      direction: Direction.DOWN,
+    };
+    const e = countEnergized(energizeGrid(grid, beam));
+
+    maxEnergized = Math.max(maxEnergized, e);
+    console.log(beam, e, maxEnergized);
+  }
+
+  // Left to right, bottom edge, going up
+  for (let col = 0; col < grid[0].length; col++) {
+    const beam = {
+      position: { row: grid.length - 1, col },
+      direction: Direction.UP,
+    };
+    const e = countEnergized(energizeGrid(grid, beam));
+
+    maxEnergized = Math.max(maxEnergized, e);
+    console.log(beam, e, maxEnergized);
+  }
+
+  console.log(maxEnergized);
+};
+
+partTwo();
+
+// const grid = parseGrid();
+// const e = countEnergized(
+//   energizeGrid(grid, {
+//     position: { row: 109, col: 19 },
+//     direction: Direction.UP,
+//   })
+// );
+// console.log(e);
