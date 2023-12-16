@@ -25,7 +25,7 @@ interface Node {
 }
 
 const parseGrid = () => {
-  const input = getInput(__filename, true).split("\n");
+  const input = getInput(__filename, false).split("\n");
 
   const grid: Node[][] = [];
 
@@ -161,21 +161,6 @@ const energizeGrid = (input: Node[][]): Node[][] => {
     const beam = queue.pop();
     if (!beam) throw Error("Weird queue");
 
-    // console.log();
-    // console.log();
-    // console.log("====");
-    // console.log("STEP", step++);
-    // printGrid(input, false);
-    // console.log();
-    // printGrid(grid, true);
-    // console.log();
-    // console.log("BEAM");
-    // console.log(beam);
-    // console.log();
-    // console.log("QUEUE");
-    // console.log(queue);
-    // console.log();
-
     // Skip any nodes that are out of bounds
     if (beam.position.row < 0) continue;
     if (beam.position.row >= grid.length) continue;
@@ -183,12 +168,12 @@ const energizeGrid = (input: Node[][]): Node[][] => {
     if (beam.position.col >= grid[0].length) continue;
 
     const node = grid[beam.position.row][beam.position.col];
+    if (!node) {
+      console.log("no node found at", beam.position.row, beam.position.col);
+      throw Error("nope");
+    }
 
-    if (node.s !== "." && node.beams.length >= 1000) {
-      // printGrid(input, false);
-      // printGrid(grid, false);
-      // printGrid(grid, true);
-      // throw Error("NOPE");
+    if (node.beams.length >= 1300) {
       continue;
     }
 
@@ -246,7 +231,7 @@ const energizeGrid = (input: Node[][]): Node[][] => {
         });
         continue;
       }
-      // throw Error("nope nope");
+      throw Error("nope nope");
     }
 
     if (node.s === "\\") {
