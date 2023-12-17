@@ -25,7 +25,7 @@ interface Node {
 }
 
 const parseGrid = () => {
-  const input = getInput(__filename, false).split("\n");
+  const input = getInput(__filename, true).split("\n");
 
   const grid: Node[][] = [];
 
@@ -146,7 +146,7 @@ const getNextPosition = (
   }
 };
 
-const MAX_CYCLES = 1200;
+const MAX_CYCLES = 5;
 
 const energizeGrid = (input: Node[][], initialBeam: Beam): Node[][] => {
   let step = 0;
@@ -173,6 +173,9 @@ const energizeGrid = (input: Node[][], initialBeam: Beam): Node[][] => {
     if (node.beams.length >= MAX_CYCLES) {
       continue;
     }
+
+    printGrid(grid, true);
+    debugger;
 
     node.energized = true;
     node.beams.push(beam);
@@ -410,7 +413,7 @@ const partTwo = () => {
   console.log(maxEnergized);
 };
 
-partTwo();
+partOne();
 
 // const grid = parseGrid();
 // const e = countEnergized(
