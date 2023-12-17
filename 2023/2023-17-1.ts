@@ -74,7 +74,6 @@ const dijkstra = (grid: Node[][], initialPosition: Position) => {
   //
   // The crucible also can't reverse direction; after entering each city block,
   // it may only turn left, continue straight, or turn right.
-
   while (queue.length > 0) {}
 };
 
@@ -87,6 +86,7 @@ const printGrid = (grid: Node[][]) => {
 const partOne = () => {
   const grid = parseGrid();
   printGrid(grid);
+  dijkstra(grid, { row: 0, col: 0 });
 };
 
 partOne();
