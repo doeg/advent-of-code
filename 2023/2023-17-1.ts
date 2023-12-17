@@ -115,6 +115,23 @@ const NEXT_DIRECTIONS: { [k in Direction]: Direction[] } = {
   right: ["up", "down"],
 };
 
+const printPath = (grid: Node[][], path: Path) => {
+  for (let row = 0; row < grid.length; row++) {
+    const line: string[] = [];
+    for (let col = 0; col < grid[row].length; col++) {
+      const inPath = path.nodes.find(
+        (node) => node.position.row === row && node.position.col === col
+      );
+      line.push(
+        !!inPath
+          ? chalk.yellow(grid[row][col].value)
+          : chalk.grey(grid[row][col].value)
+      );
+    }
+    console.log(line.join(" "));
+  }
+};
+
 const traverse = (grid: Node[][], initialPosition: Position) => {
   const paths: Path[] = [];
 
@@ -130,10 +147,20 @@ const traverse = (grid: Node[][], initialPosition: Position) => {
     }
   );
 
+  let i = 0;
+  const circuitBreaker = 1000;
+
   while (paths.length > 0) {
+    console.log("===========================");
+    console.log("ITERATION", i);
+    if (i++ > circuitBreaker) return;
+
     // Choose the cheapest path from the list of open paths.
     const idx = findCheapestPath(paths);
     const path = paths.splice(idx, 1)[0];
+    console.log(JSON.stringify(path, null, 2));
+
+    printPath(grid, path);
 
     // Check if we are at the last node. If so, we're done. Maybe?
     // Or maybe we should keep track of all completed paths and then take the smallest?
@@ -165,8 +192,11 @@ const traverse = (grid: Node[][], initialPosition: Position) => {
       });
     });
 
-    console.log("next paths", nextPaths.length, nextPaths);
+    console.log("next paths", nextPaths.length);
+    // console.log(JSON.stringify(nextPaths, null, 2));
     console.log();
+
+    paths.push(...nextPaths);
   }
 };
 
