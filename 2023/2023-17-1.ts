@@ -44,37 +44,59 @@ const parseGrid = (): Node[][] => {
   return grid;
 };
 
-const dijkstra = (grid: Node[][], initialPosition: Position) => {
-  const queue: Node[] = [];
+type Direction = "up" | "down" | "left" | "right";
 
-  // dist is an array that contains the current distances from the source to
-  // other vertices, i.e. dist[u] is the current distance from the source to the vertex u
-  const dist: { [key: string]: number } = {};
+interface Path {
+  nodes: Node[];
+  currentDirection: Direction;
+  currentStepCount: number;
+}
 
-  //The prev array contains pointers to previous-hop nodes on the shortest path
-  // from source to the given vertex (equivalently, it is the next-hop on the path
-  // from the given vertex to the source)
-  const prev: { [key: string]: string | null } = {};
+const pathCost = (path: Path): number => {
+  return path.nodes.reduce((sum, node) => {
+    return sum + node.value;
+  }, 0);
+};
 
-  for (let row = 0; row < grid.length; row++) {
-    for (let col = 0; col < grid[row].length; col++) {
-      const node = grid[row][col];
-      dist[toKey(node)] = Number.MAX_VALUE;
-      prev[toKey(node)] = null;
-      queue.push(node);
+// Returns the index of the path with the cheapest path
+const findCheapestPath = (paths: Path[]): number => {
+  let cheapestSoFar = Number.MAX_VALUE;
+  let cheapestIndex = -1;
+
+  for (let i = 0; i < paths.length; i++) {
+    const cost = pathCost(paths[i]);
+    if (cost < cheapestSoFar) {
+      cheapestSoFar = cost;
+      cheapestIndex = i;
     }
   }
 
-  const source: Node = grid[initialPosition.row][initialPosition.col];
-  dist[toKey(source)] = 0;
+  if (cheapestIndex < 0) throw Error("findCheapestPath negative index");
+  return cheapestIndex;
+};
 
-  // Because it is difficult to keep the top-heavy crucible going in a straight
-  // line for very long, it can move at most three blocks in a single direction
-  // before it must turn 90 degrees left or right.
-  //
-  // The crucible also can't reverse direction; after entering each city block,
-  // it may only turn left, continue straight, or turn right.
-  while (queue.length > 0) {}
+const traverse = (grid: Node[][], initialPosition: Position) => {
+  const paths: Path[] = [];
+
+  const sourceNode = grid[initialPosition.row][initialPosition.col];
+  paths.push(
+    {
+      nodes: [sourceNode],
+      currentDirection: "right",
+      currentStepCount: 0,
+    },
+    {
+      nodes: [sourceNode],
+      currentDirection: "down",
+      currentStepCount: 0,
+    }
+  );
+
+  while (paths.length > 0) {
+    const idx = findCheapestPath(paths);
+    const path = paths.splice(idx, 1);
+    console.log(path);
+  }
 };
 
 const printGrid = (grid: Node[][]) => {
@@ -86,7 +108,8 @@ const printGrid = (grid: Node[][]) => {
 const partOne = () => {
   const grid = parseGrid();
   printGrid(grid);
-  dijkstra(grid, { row: 0, col: 0 });
+  traverse(grid, { row: 0, col: 0 });
+  console.log("done");
 };
 
 partOne();
