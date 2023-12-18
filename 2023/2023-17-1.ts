@@ -1,6 +1,11 @@
 import { getInput } from "./utils";
 import chalk from "chalk";
 
+interface Position {
+  row: number;
+  col: number;
+}
+
 const USE_EXAMPLE = true;
 
 const parseGrid = (): number[][] => {
@@ -35,9 +40,93 @@ const printGrid = (grid: number[][]) => {
   }
 };
 
+const positionToKey = (p: Position) => `${p.row}__${p.col}`;
+const positionFromKey = (key: string) => {
+  const [row, col] = key.split("__");
+  return { row: parseInt(row), col: parseInt(col) };
+};
+
+class NodeSet {
+  nodes: Position[] = [];
+
+  add = (node: Position) => {
+    const index = this.nodes.findIndex(
+      (n) => n.row === node.row && n.col === node.col
+    );
+    if (index < 0) {
+      this.nodes.push(node);
+    }
+  };
+
+  // Returns the node in openSet having the lowest fScore[] value
+  popMin = (): Position => {
+    // TODO
+    // This operation can occur in O(Log(N)) time if openSet is a min-heap or a priority queue
+    const next = this.nodes.pop();
+    if (!next) throw Error("Cannot popMin on empty NodeSet");
+    return next;
+  };
+
+  size = () => {
+    return this.nodes.length;
+  };
+}
+
+const log = (...data: any[]) => {
+  console.log(...data);
+};
+
+// h is the heuristic function. h(n) estimates the cost to reach goal from node n.
+const heuristic = (node: Position, goal: Position): number => {
+  return 0;
+};
+
+// A* finds a path from start to goal.
+const aStar = (grid: number[][], start: Position, goal: Position) => {
+  // The set of discovered nodes that may need to be (re-)expanded.
+  // Initially, only the start node is known.
+  // This is usually implemented as a min-heap or priority queue rather than a hash-set.
+  const openSet = new NodeSet();
+  openSet.add(start);
+
+  // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from the start
+  // to n currently known.
+  const cameFrom: { [nodeKey: string]: string } = {};
+
+  // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
+  // The "default value" is Number.MAX_VALUE
+  const gScore: { [nodeKey: string]: number } = {};
+  gScore[positionToKey(start)] = 0;
+
+  // For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
+  // how cheap a path could be from start to finish if it goes through n.
+  // The "default value" is Number.MAX_VALUE;
+  const fScore: { [nodeKey: string]: number } = {};
+  fScore[positionToKey(start)] = heuristic(start, goal);
+
+  let step = 0; // For debugging only
+
+  while (openSet.size() > 0) {
+    log("\nIteration", step++);
+
+    const current = openSet.popMin();
+    if (current.row === goal.row && current.col === goal.col) {
+      console.log("DONE!!!!!!");
+      return;
+    }
+
+    log();
+  }
+};
+
 const partOne = () => {
   const grid = parseGrid();
   printGrid(grid);
+
+  const start = { row: 0, col: 0 };
+  const goal = { row: grid.length - 1, col: grid[0].length - 1 };
+
+  aStar(grid, start, goal);
 };
 
 partOne();
