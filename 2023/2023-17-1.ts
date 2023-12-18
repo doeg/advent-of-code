@@ -81,6 +81,12 @@ const heuristic = (node: Position, goal: Position): number => {
   return 0;
 };
 
+// getNeighbours returns all neighbours that are within the bounds of the grid.
+const getNeighbours = (grid: number[][], node: Position): Position[] => {
+  const neighbours: Position[] = [];
+  return neighbours;
+};
+
 // A* finds a path from start to goal.
 const aStar = (grid: number[][], start: Position, goal: Position) => {
   // The set of discovered nodes that may need to be (re-)expanded.
@@ -111,8 +117,39 @@ const aStar = (grid: number[][], start: Position, goal: Position) => {
 
     const current = openSet.popMin();
     if (current.row === goal.row && current.col === goal.col) {
+      // TODO reconstruct path
       console.log("DONE!!!!!!");
       return;
+    }
+
+    const neighbours = getNeighbours(grid, current);
+    for (let i = 0; i < neighbours.length; i++) {
+      const neighbour = neighbours[i];
+
+      // d(current,neighbor) is the weight of the edge from current to neighbor
+      const dCurrentNeighbour = grid[neighbour.row][neighbour.col];
+
+      // tentative_gScore is the distance from start to the neighbor through current
+      //   tentative_gScore := gScore[current] + d(current, neighbor)
+      const tentativeGScore =
+        gScore[positionToKey(current)] + dCurrentNeighbour;
+
+      //   if tentative_gScore < gScore[neighbor]
+      if (tentativeGScore < gScore[positionToKey(neighbour)]) {
+        // This path to neighbor is better than any previous one. Record it!
+        //
+        //       cameFrom[neighbor] := current
+        cameFrom[positionToKey(neighbour)] = positionToKey(current);
+        //       gScore[neighbor] := tentative_gScore
+        gScore[positionToKey(neighbour)] = tentativeGScore;
+        //       fScore[neighbor] := tentative_gScore + h(neighbor)
+        fScore[positionToKey(neighbour)] =
+          tentativeGScore + heuristic(neighbour, goal);
+
+        //       if neighbor not in openSet
+        //           openSet.add(neighbor)
+        openSet.add(neighbour);
+      }
     }
 
     log();
