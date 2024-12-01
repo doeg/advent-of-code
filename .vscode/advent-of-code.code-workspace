@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"editor.formatOnSave": true,
+		"visualforce.format.endWithNewline": true,
+		"files.insertFinalNewline": true
+	}
+}
