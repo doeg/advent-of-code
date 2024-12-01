@@ -1,2 +1,6 @@
 .DS_Store
 *.txt
+
+# Clojure
+.lsp
+.clj-kondo
