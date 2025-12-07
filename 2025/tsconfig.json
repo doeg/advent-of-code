@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "target": "es2020",
+    "types": ["bun", "node"]
+  },
+}
