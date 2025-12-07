@@ -1,7 +1,11 @@
 import * as fs from "fs";
 
-export const readLines = async () => {
+export const readFile = async () => {
   const filename = process.argv[2];
-  const file = await fs.promises.readFile(filename, "utf8");
+  return await fs.promises.readFile(filename, "utf8");
+};
+
+export const readLines = async () => {
+  const file = await readFile();
   return file.split(/\r?\n/);
 };
